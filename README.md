@@ -120,8 +120,8 @@ npm test
 ## 📦 Incremental Roadmap
 
 - [x] **PHASE 0:** Project Foundation & Architecture (Express, MongoDB, MVC, EJS, Error Handling, Tests)
-- [ ] **PHASE 1:** Authentication & Security (Traveler/Host JWT, bcryptjs, RBAC Middleware)
-- [ ] **PHASE 2:** Property Management (CRUD, Cloudinary Images, Filters)
+- [x] **PHASE 1:** Authentication & Security (Traveler/Host JWT, bcryptjs, RBAC Middleware)
+- [x] **PHASE 2:** Property Management (CRUD, Ownership RBAC, Cloudinary/Multer Uploads, Filters, Pagination)
 - [ ] **PHASE 3:** Geospatial Mapping (MapLibre GL, 2dsphere `$near` Search)
 - [ ] **PHASE 4:** Concurrency-Safe Booking Engine (ACID Overlap Prevention)
 - [ ] **PHASE 5:** Reviews & Ratings (Verified Guest Only Aggregation)
