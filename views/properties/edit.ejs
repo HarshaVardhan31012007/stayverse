@@ -1,0 +1,184 @@
+<% layout('layouts/boilerplate') %>
+
+<div class="property-form-wrapper">
+  <div class="property-form-card">
+    <div class="form-header">
+      <span class="auth-badge"><i class="fa-solid fa-pen-nib"></i> Edit Listing</span>
+      <h1>Update Property Details</h1>
+      <p>Modify your property pricing, description, coordinates, or upload additional photos.</p>
+    </div>
+
+    <% if (typeof errorMsg !== 'undefined' && errorMsg) { %>
+      <div class="alert alert-danger" role="alert">
+        <div class="alert-content">
+          <i class="fa-solid fa-triangle-exclamation alert-icon"></i>
+          <span><%= errorMsg %></span>
+        </div>
+      </div>
+    <% } %>
+
+    <form action="/properties/<%= property._id %>?_method=PUT" method="POST" enctype="multipart/form-data" class="property-form" novalidate>
+      <!-- Title -->
+      <div class="form-group">
+        <label for="title" class="form-label">Property Title *</label>
+        <input 
+          type="text" 
+          name="title" 
+          id="title" 
+          class="form-control-plain" 
+          value="<%= property.title %>"
+          required
+        >
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="description" class="form-label">Description *</label>
+        <textarea 
+          name="description" 
+          id="description" 
+          rows="5" 
+          class="form-control-plain" 
+          required
+        ><%= property.description %></textarea>
+      </div>
+
+      <!-- Price -->
+      <div class="form-group">
+        <label for="pricePerNight" class="form-label">Price per Night (USD) *</label>
+        <div class="input-currency-wrap">
+          <span class="currency-prefix">$</span>
+          <input 
+            type="number" 
+            name="pricePerNight" 
+            id="pricePerNight" 
+            class="form-control-plain with-prefix" 
+            value="<%= property.pricePerNight %>"
+            required
+            min="1"
+          >
+        </div>
+      </div>
+
+      <div class="form-row-3">
+        <!-- Address -->
+        <div class="form-group">
+          <label for="address" class="form-label">Street Address *</label>
+          <input 
+            type="text" 
+            name="address" 
+            id="address" 
+            class="form-control-plain" 
+            value="<%= property.address %>"
+            required
+          >
+        </div>
+
+        <!-- City -->
+        <div class="form-group">
+          <label for="city" class="form-label">City *</label>
+          <input 
+            type="text" 
+            name="city" 
+            id="city" 
+            class="form-control-plain" 
+            value="<%= property.city %>"
+            required
+          >
+        </div>
+
+        <!-- Country -->
+        <div class="form-group">
+          <label for="country" class="form-label">Country *</label>
+          <input 
+            type="text" 
+            name="country" 
+            id="country" 
+            class="form-control-plain" 
+            value="<%= property.country %>"
+            required
+          >
+        </div>
+      </div>
+
+      <!-- Coordinates -->
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="latitude" class="form-label">Latitude *</label>
+          <input 
+            type="number" 
+            step="any" 
+            name="latitude" 
+            id="latitude" 
+            class="form-control-plain" 
+            value="<%= property.location && property.location.coordinates ? property.location.coordinates[1] : '' %>"
+            required
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="longitude" class="form-label">Longitude *</label>
+          <input 
+            type="number" 
+            step="any" 
+            name="longitude" 
+            id="longitude" 
+            class="form-control-plain" 
+            value="<%= property.location && property.location.coordinates ? property.location.coordinates[0] : '' %>"
+            required
+          >
+        </div>
+      </div>
+
+      <!-- Current Photos -->
+      <% if (property.images && property.images.length > 0) { %>
+        <div class="form-group">
+          <label class="form-label">Current Photos</label>
+          <div class="current-images-row">
+            <% property.images.forEach(img => { %>
+              <div class="current-img-thumb">
+                <img src="<%= img.url %>" alt="Property Photo">
+              </div>
+            <% }) %>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- Amenities Checklist -->
+      <div class="form-group">
+        <label class="form-label">Amenities</label>
+        <div class="amenities-checklist">
+          <% const allAmenities = ['WiFi', 'Pool', 'Free Parking', 'Kitchen', 'Air Conditioning', 'Hot Tub', 'Dedicated Workspace', 'Beach Access', 'Mountain View', 'Pet Friendly']; %>
+          <% allAmenities.forEach(am => { %>
+            <label class="amenity-checkbox-label">
+              <input 
+                type="checkbox" 
+                name="amenities" 
+                value="<%= am %>"
+                <%= (property.amenities && property.amenities.includes(am)) ? 'checked' : '' %>
+              >
+              <span><%= am %></span>
+            </label>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- Upload Additional Photos -->
+      <div class="form-group">
+        <label for="images" class="form-label">Add More Photos (Optional)</label>
+        <div class="file-upload-box">
+          <i class="fa-solid fa-cloud-arrow-up file-icon"></i>
+          <p>Click or drag photos to add more images</p>
+          <input type="file" name="images" id="images" class="file-input-hidden" multiple accept="image/*">
+        </div>
+      </div>
+
+      <div class="form-actions-row">
+        <button type="submit" class="btn btn-primary btn-lg">
+          <i class="fa-solid fa-floppy-disk"></i> Save Changes
+        </button>
+        <a href="/properties/<%= property._id %>" class="btn btn-outline btn-lg">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>

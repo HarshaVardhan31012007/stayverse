@@ -24,9 +24,12 @@ app.use(methodOverride('_method'));
 // Static Assets
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Optional Authentication Middleware (populates req.user & res.locals.currentUser)
+const { optionalAuth } = require('./middleware/authMiddleware');
+app.use(optionalAuth);
+
 // Global Context Middleware for Views
 app.use((req, res, next) => {
-  res.locals.currentUser = req.user || null;
   res.locals.title = 'StayVerse — Modern Vacation Rental Platform';
   res.locals.successMsg = req.cookies?.successMsg || null;
   res.locals.errorMsg = req.cookies?.errorMsg || null;
@@ -37,6 +40,28 @@ app.use((req, res, next) => {
 
   next();
 });
+
+// Mount Routes
+const authRoutes = require('./routes/authRoutes');
+const propertyRoutes = require('./routes/propertyRoutes');
+const propertyController = require('./controllers/propertyController');
+const { requireAuth } = require('./middleware/authMiddleware');
+const { requireRole } = require('./middleware/roleMiddleware');
+const { catchAsync } = require('./middleware/errorMiddleware');
+
+app.use('/auth', authRoutes);
+app.use('/api/auth', authRoutes);
+
+app.use('/properties', propertyRoutes);
+app.use('/api/properties', propertyRoutes);
+
+// Host Dashboard direct route
+app.get(
+  '/dashboard/host',
+  requireAuth,
+  requireRole('host'),
+  catchAsync(propertyController.getMyProperties)
+);
 
 // Health Check Endpoint
 app.get('/health', (req, res) => {

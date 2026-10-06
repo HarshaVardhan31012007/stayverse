@@ -1,0 +1,120 @@
+<% layout('layouts/boilerplate') %>
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-header">
+      <span class="auth-badge">Join StayVerse</span>
+      <h1 class="auth-title">Create your account</h1>
+      <p class="auth-subtitle">Discover unforgettable homes or list your properties to travelers worldwide.</p>
+    </div>
+
+    <% if (typeof errorMsg !== 'undefined' && errorMsg) { %>
+      <div class="alert alert-danger" role="alert">
+        <div class="alert-content">
+          <i class="fa-solid fa-triangle-exclamation alert-icon"></i>
+          <span><%= errorMsg %></span>
+        </div>
+      </div>
+    <% } %>
+
+    <form action="/auth/register" method="POST" class="auth-form" novalidate>
+      <!-- Full Name -->
+      <div class="form-group">
+        <label for="name" class="form-label">Full Name</label>
+        <div class="input-icon-wrap">
+          <i class="fa-solid fa-user input-icon"></i>
+          <input 
+            type="text" 
+            name="name" 
+            id="name" 
+            class="form-control" 
+            placeholder="Alex Rivera"
+            value="<%= typeof formData !== 'undefined' && formData.name ? formData.name : '' %>"
+            required
+            autocomplete="name"
+          >
+        </div>
+      </div>
+
+      <!-- Email Address -->
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <div class="input-icon-wrap">
+          <i class="fa-solid fa-envelope input-icon"></i>
+          <input 
+            type="email" 
+            name="email" 
+            id="email" 
+            class="form-control" 
+            placeholder="alex@stayverse.com"
+            value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>"
+            required
+            autocomplete="email"
+          >
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-icon-wrap">
+          <i class="fa-solid fa-lock input-icon"></i>
+          <input 
+            type="password" 
+            name="password" 
+            id="password" 
+            class="form-control" 
+            placeholder="At least 6 characters"
+            required
+            minlength="6"
+            autocomplete="new-password"
+          >
+        </div>
+        <small class="form-hint">Must contain at least 6 characters.</small>
+      </div>
+
+      <!-- Account Role Selection -->
+      <div class="form-group">
+        <label class="form-label">Select Account Type</label>
+        <div class="role-selector-grid">
+          <label class="role-card <%= (typeof formData !== 'undefined' && formData.role === 'host') ? '' : 'selected' %>">
+            <input 
+              type="radio" 
+              name="role" 
+              value="traveler" 
+              <%= (typeof formData === 'undefined' || formData.role !== 'host') ? 'checked' : '' %>
+            >
+            <div class="role-info">
+              <span class="role-icon"><i class="fa-solid fa-plane-departure"></i></span>
+              <span class="role-title">Traveler</span>
+              <span class="role-desc">Book luxury homes & review stays</span>
+            </div>
+          </label>
+
+          <label class="role-card <%= (typeof formData !== 'undefined' && formData.role === 'host') ? 'selected' : '' %>">
+            <input 
+              type="radio" 
+              name="role" 
+              value="host"
+              <%= (typeof formData !== 'undefined' && formData.role === 'host') ? 'checked' : '' %>
+            >
+            <div class="role-info">
+              <span class="role-icon"><i class="fa-solid fa-house-chimney-user"></i></span>
+              <span class="role-title">Property Host</span>
+              <span class="role-desc">List properties & manage bookings</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg">
+        <i class="fa-solid fa-user-plus"></i> Create StayVerse Account
+      </button>
+
+      <div class="auth-switch">
+        <span>Already have an account?</span>
+        <a href="/auth/login" class="auth-link">Sign In</a>
+      </div>
+    </form>
+  </div>
+</div>

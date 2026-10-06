@@ -1,0 +1,60 @@
+<% layout('layouts/boilerplate') %>
+
+<div class="dashboard-wrapper">
+  <div class="dashboard-header">
+    <div>
+      <span class="auth-badge"><i class="fa-solid fa-chart-line"></i> Host Central</span>
+      <h1 class="dashboard-title">Your Property Listings</h1>
+      <p class="text-muted">Manage your vacation homes, review performance, and update property details.</p>
+    </div>
+    <a href="/properties/new" class="btn btn-primary btn-lg">
+      <i class="fa-solid fa-plus-circle"></i> Add New Property
+    </a>
+  </div>
+
+  <% if (properties && properties.length > 0) { %>
+    <div class="host-inventory-grid">
+      <% properties.forEach(prop => { %>
+        <div class="host-property-card">
+          <div class="host-card-media">
+            <img 
+              src="<%= (prop.images && prop.images[0] && prop.images[0].url) ? prop.images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80' %>" 
+              alt="<%= prop.title %>"
+            >
+          </div>
+          <div class="host-card-body">
+            <div class="host-card-meta">
+              <span class="host-card-location"><i class="fa-solid fa-location-dot"></i> <%= prop.city %>, <%= prop.country %></span>
+              <span class="host-card-rating"><i class="fa-solid fa-star text-warning"></i> <%= prop.averageRating > 0 ? prop.averageRating.toFixed(1) : 'New' %></span>
+            </div>
+            <h3 class="host-card-title"><%= prop.title %></h3>
+            <p class="host-card-price">$<%= prop.pricePerNight.toLocaleString() %> <span class="text-muted">/ night</span></p>
+
+            <div class="host-card-actions">
+              <a href="/properties/<%= prop._id %>" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-eye"></i> View
+              </a>
+              <a href="/properties/<%= prop._id %>/edit" class="btn btn-outline btn-sm">
+                <i class="fa-solid fa-pen-to-square"></i> Edit
+              </a>
+              <form action="/properties/<%= prop._id %>?_method=DELETE" method="POST" class="inline-form" onsubmit="return confirm('Are you sure you want to delete this property?');">
+                <button type="submit" class="btn btn-danger-outline btn-sm">
+                  <i class="fa-solid fa-trash-can"></i> Delete
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <div class="empty-state">
+      <div class="empty-icon"><i class="fa-solid fa-house-chimney-crack"></i></div>
+      <h2>You don't have any listings yet</h2>
+      <p>Start hosting travelers by creating your first vacation property listing today.</p>
+      <a href="/properties/new" class="btn btn-primary btn-lg">
+        <i class="fa-solid fa-plus-circle"></i> Create Your First Listing
+      </a>
+    </div>
+  <% } %>
+</div>

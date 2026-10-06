@@ -1,0 +1,162 @@
+<% layout('layouts/boilerplate') %>
+
+<div class="property-detail-wrapper">
+  <!-- Top Bar -->
+  <div class="property-topbar">
+    <a href="/properties" class="back-link">
+      <i class="fa-solid fa-arrow-left"></i> All Stays
+    </a>
+    
+    <div class="property-actions">
+      <% if (typeof currentUser !== 'undefined' && currentUser && property.host && (currentUser._id.toString() === property.host._id.toString() || currentUser.id === property.host.id)) { %>
+        <span class="owner-pill"><i class="fa-solid fa-crown"></i> Your Listing</span>
+        <a href="/properties/<%= property._id %>/edit" class="btn btn-outline btn-sm">
+          <i class="fa-solid fa-pen-to-square"></i> Edit
+        </a>
+        <form action="/properties/<%= property._id %>?_method=DELETE" method="POST" class="inline-form" onsubmit="return confirm('Are you certain you wish to permanently delete this listing?');">
+          <button type="submit" class="btn btn-danger-outline btn-sm">
+            <i class="fa-solid fa-trash-can"></i> Delete
+          </button>
+        </form>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Header Info -->
+  <div class="property-header">
+    <h1 class="property-title"><%= property.title %></h1>
+    <div class="property-meta-row">
+      <span class="meta-item">
+        <i class="fa-solid fa-star text-warning"></i>
+        <strong><%= property.averageRating > 0 ? property.averageRating.toFixed(1) : 'New' %></strong>
+        <span class="text-muted">(<%= property.reviewCount %> <%= property.reviewCount === 1 ? 'review' : 'reviews' %>)</span>
+      </span>
+      <span class="meta-separator">•</span>
+      <span class="meta-item">
+        <i class="fa-solid fa-location-dot"></i> <%= property.address %>, <%= property.city %>, <%= property.country %>
+      </span>
+    </div>
+  </div>
+
+  <!-- Image Showcase -->
+  <div class="property-gallery">
+    <div class="gallery-main">
+      <img 
+        src="<%= (property.images && property.images[0] && property.images[0].url) ? property.images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=80' %>" 
+        alt="<%= property.title %>"
+        class="img-featured"
+      >
+    </div>
+    <% if (property.images && property.images.length > 1) { %>
+      <div class="gallery-thumbnails">
+        <% property.images.slice(1, 5).forEach((img, i) => { %>
+          <div class="thumb-wrap">
+            <img src="<%= img.url %>" alt="Photo <%= i + 2 %>" class="img-thumb">
+          </div>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Main Details Content -->
+  <div class="property-content-grid">
+    <!-- Left Column: Description, Host, Amenities, Map -->
+    <div class="property-main-col">
+      <!-- Host Profile Ribbon -->
+      <div class="host-ribbon">
+        <div class="host-avatar">
+          <%= property.host && property.host.name ? property.host.name.charAt(0).toUpperCase() : 'H' %>
+        </div>
+        <div class="host-details">
+          <h3>Hosted by <%= property.host ? property.host.name : 'StayVerse Host' %></h3>
+          <p class="text-muted">Verified Host • Dedicated to exceptional guest experiences</p>
+        </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- Description -->
+      <div class="property-section">
+        <h2>About this space</h2>
+        <p class="property-description"><%= property.description %></p>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- Amenities -->
+      <div class="property-section">
+        <h2>What this place offers</h2>
+        <% if (property.amenities && property.amenities.length > 0) { %>
+          <div class="amenities-grid">
+            <% property.amenities.forEach(item => { %>
+              <div class="amenity-item">
+                <i class="fa-solid fa-circle-check text-primary"></i>
+                <span><%= item %></span>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <p class="text-muted">Standard vacation amenities provided.</p>
+        <% } %>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- Location Map Section (Prepared for Module 3 MapLibre) -->
+      <div class="property-section">
+        <h2>Where you'll be</h2>
+        <p class="text-muted"><%= property.city %>, <%= property.country %></p>
+        <div 
+          id="propertyMap" 
+          class="map-container"
+          data-lng="<%= property.location.coordinates[0] %>"
+          data-lat="<%= property.location.coordinates[1] %>"
+          data-title="<%= property.title %>"
+        >
+          <!-- Map initialized by client script in Module 3 -->
+          <div class="map-placeholder">
+            <i class="fa-solid fa-map-location-dot"></i>
+            <p>Geospatial Coordinates: [<%= property.location.coordinates[0] %>, <%= property.location.coordinates[1] %>]</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Booking Widget Preview (Prepared for Module 4) -->
+    <aside class="property-sidebar">
+      <div class="booking-widget-card">
+        <div class="widget-price-header">
+          <div class="widget-price">
+            <span class="price-amount">$<%= property.pricePerNight.toLocaleString() %></span>
+            <span class="price-period">/ night</span>
+          </div>
+          <div class="widget-rating">
+            <i class="fa-solid fa-star text-warning"></i>
+            <span><%= property.averageRating > 0 ? property.averageRating.toFixed(1) : 'New' %></span>
+          </div>
+        </div>
+
+        <div class="booking-preview-box">
+          <div class="date-picker-placeholder">
+            <div class="picker-col">
+              <label>CHECK-IN</label>
+              <span>Select Date</span>
+            </div>
+            <div class="picker-col">
+              <label>CHECKOUT</label>
+              <span>Select Date</span>
+            </div>
+          </div>
+
+          <a href="/properties" class="btn btn-primary btn-block btn-lg">
+            <i class="fa-solid fa-calendar-check"></i> Reserve Dates
+          </a>
+
+          <p class="booking-guarantee">
+            <i class="fa-solid fa-shield-halved"></i> Concurrency-Safe Instant Confirmation
+          </p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>

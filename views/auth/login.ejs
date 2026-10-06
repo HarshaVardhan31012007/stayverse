@@ -1,0 +1,66 @@
+<% layout('layouts/boilerplate') %>
+
+<div class="auth-wrapper">
+  <div class="auth-card">
+    <div class="auth-header">
+      <span class="auth-badge">Welcome Back</span>
+      <h1 class="auth-title">Sign in to StayVerse</h1>
+      <p class="auth-subtitle">Access your bookings, host properties, and personalized recommendations.</p>
+    </div>
+
+    <% if (typeof errorMsg !== 'undefined' && errorMsg) { %>
+      <div class="alert alert-danger" role="alert">
+        <div class="alert-content">
+          <i class="fa-solid fa-triangle-exclamation alert-icon"></i>
+          <span><%= errorMsg %></span>
+        </div>
+      </div>
+    <% } %>
+
+    <form action="/auth/login" method="POST" class="auth-form" novalidate>
+      <!-- Email Address -->
+      <div class="form-group">
+        <label for="email" class="form-label">Email Address</label>
+        <div class="input-icon-wrap">
+          <i class="fa-solid fa-envelope input-icon"></i>
+          <input 
+            type="email" 
+            name="email" 
+            id="email" 
+            class="form-control" 
+            placeholder="alex@stayverse.com"
+            value="<%= typeof formData !== 'undefined' && formData.email ? formData.email : '' %>"
+            required
+            autocomplete="email"
+          >
+        </div>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-icon-wrap">
+          <i class="fa-solid fa-lock input-icon"></i>
+          <input 
+            type="password" 
+            name="password" 
+            id="password" 
+            class="form-control" 
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+          >
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg">
+        <i class="fa-solid fa-right-to-bracket"></i> Sign In to Account
+      </button>
+
+      <div class="auth-switch">
+        <span>Don't have an account yet?</span>
+        <a href="/auth/register" class="auth-link">Sign Up</a>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,125 @@
+<% layout('layouts/boilerplate') %>
+
+<section class="explorer-header">
+  <div class="explorer-headline">
+    <h1>Find Your Next Escape</h1>
+    <p>Discover distinct vacation homes, beach villas, and cabins across the globe.</p>
+  </div>
+
+  <!-- Search & Filter Controls -->
+  <form action="/properties" method="GET" class="filter-bar">
+    <div class="filter-input-wrap">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input 
+        type="text" 
+        name="search" 
+        class="filter-input" 
+        placeholder="Destination, city, or property name..." 
+        value="<%= typeof filters !== 'undefined' && filters.search ? filters.search : '' %>"
+      >
+    </div>
+
+    <div class="filter-group">
+      <select name="sort" class="filter-select">
+        <option value="newest" <%= (typeof filters !== 'undefined' && filters.sort === 'newest') ? 'selected' : '' %>>Newest Listed</option>
+        <option value="price-asc" <%= (typeof filters !== 'undefined' && filters.sort === 'price-asc') ? 'selected' : '' %>>Price: Low to High</option>
+        <option value="price-desc" <%= (typeof filters !== 'undefined' && filters.sort === 'price-desc') ? 'selected' : '' %>>Price: High to Low</option>
+        <option value="rating" <%= (typeof filters !== 'undefined' && filters.sort === 'rating') ? 'selected' : '' %>>Top Rated</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+      <i class="fa-solid fa-sliders"></i> Filter
+    </button>
+
+    <% if (typeof filters !== 'undefined' && (filters.search || filters.sort || filters.amenity)) { %>
+      <a href="/properties" class="btn btn-ghost" title="Reset Filters">
+        <i class="fa-solid fa-rotate-left"></i> Reset
+      </a>
+    <% } %>
+  </form>
+</section>
+
+<!-- Property Grid -->
+<% if (properties && properties.length > 0) { %>
+  <div class="property-grid">
+    <% properties.forEach(prop => { %>
+      <div class="property-card">
+        <a href="/properties/<%= prop._id %>" class="property-card-link">
+          <div class="property-img-wrapper">
+            <img 
+              src="<%= (prop.images && prop.images[0] && prop.images[0].url) ? prop.images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80' %>" 
+              alt="<%= prop.title %>"
+              class="property-img"
+              loading="lazy"
+            >
+            <div class="property-rating-badge">
+              <i class="fa-solid fa-star"></i>
+              <span><%= prop.averageRating > 0 ? prop.averageRating.toFixed(1) : 'New' %></span>
+            </div>
+          </div>
+
+          <div class="property-card-body">
+            <div class="property-card-location">
+              <i class="fa-solid fa-location-dot"></i> <%= prop.city %>, <%= prop.country %>
+            </div>
+            <h3 class="property-card-title"><%= prop.title %></h3>
+            
+            <% if (prop.amenities && prop.amenities.length > 0) { %>
+              <div class="property-amenity-tags">
+                <% prop.amenities.slice(0, 3).forEach(am => { %>
+                  <span class="amenity-tag"><%= am %></span>
+                <% }) %>
+                <% if (prop.amenities.length > 3) { %>
+                  <span class="amenity-tag">+<%= prop.amenities.length - 3 %></span>
+                <% } %>
+              </div>
+            <% } %>
+
+            <div class="property-card-footer">
+              <div class="property-price">
+                <span class="price-val">$<%= prop.pricePerNight.toLocaleString() %></span>
+                <span class="price-unit">/ night</span>
+              </div>
+              <span class="btn-card-view">View Details &rarr;</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    <% }) %>
+  </div>
+
+  <!-- Pagination Controls -->
+  <% if (pagination && pagination.totalPages > 1) { %>
+    <nav class="pagination-nav">
+      <% if (pagination.hasPrevPage) { %>
+        <a href="/properties?page=<%= pagination.page - 1 %><%= typeof filters !== 'undefined' && filters.search ? '&search=' + encodeURIComponent(filters.search) : '' %><%= typeof filters !== 'undefined' && filters.sort ? '&sort=' + encodeURIComponent(filters.sort) : '' %>" class="btn btn-outline">
+          &larr; Previous
+        </a>
+      <% } else { %>
+        <button class="btn btn-outline" disabled>&larr; Previous</button>
+      <% } %>
+
+      <span class="page-indicator">
+        Page <strong><%= pagination.page %></strong> of <strong><%= pagination.totalPages %></strong> (<%= pagination.total %> total stays)
+      </span>
+
+      <% if (pagination.hasNextPage) { %>
+        <a href="/properties?page=<%= pagination.page + 1 %><%= typeof filters !== 'undefined' && filters.search ? '&search=' + encodeURIComponent(filters.search) : '' %><%= typeof filters !== 'undefined' && filters.sort ? '&sort=' + encodeURIComponent(filters.sort) : '' %>" class="btn btn-outline">
+          Next &rarr;
+        </a>
+      <% } else { %>
+        <button class="btn btn-outline" disabled>Next &rarr;</button>
+      <% } %>
+    </nav>
+  <% } %>
+
+<% } else { %>
+  <!-- Empty State -->
+  <div class="empty-state">
+    <div class="empty-icon"><i class="fa-solid fa-mountain-sun"></i></div>
+    <h2>No properties found</h2>
+    <p>We couldn't find any stays matching your criteria. Try adjusting your search query or reset your filters.</p>
+    <a href="/properties" class="btn btn-primary">Browse All Listings</a>
+  </div>
+<% } %>

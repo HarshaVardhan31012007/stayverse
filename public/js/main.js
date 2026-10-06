@@ -30,6 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Role selection cards highlight
+  const roleCards = document.querySelectorAll('.role-card');
+  roleCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      roleCards.forEach((c) => c.classList.remove('selected'));
+      card.classList.add('selected');
+    });
+  });
+
   // Auto-dismiss Flash Alerts after 5 seconds
   const alerts = document.querySelectorAll('.alert');
   alerts.forEach((alert) => {
