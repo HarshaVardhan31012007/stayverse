@@ -102,21 +102,23 @@
 
       <hr class="section-divider">
 
-      <!-- Location Map Section (Prepared for Module 3 MapLibre) -->
+      <!-- Location Map Section -->
       <div class="property-section">
         <h2>Where you'll be</h2>
-        <p class="text-muted"><%= property.city %>, <%= property.country %></p>
+        <p class="text-muted"><%= property.address %>, <%= property.city %>, <%= property.country %></p>
         <div 
           id="propertyMap" 
           class="map-container"
           data-lng="<%= property.location.coordinates[0] %>"
           data-lat="<%= property.location.coordinates[1] %>"
           data-title="<%= property.title %>"
+          data-address="<%= property.address %>"
+          data-city="<%= property.city %>"
         >
-          <!-- Map initialized by client script in Module 3 -->
+          <!-- Fallback placeholder while map loads -->
           <div class="map-placeholder">
-            <i class="fa-solid fa-map-location-dot"></i>
-            <p>Geospatial Coordinates: [<%= property.location.coordinates[0] %>, <%= property.location.coordinates[1] %>]</p>
+            <i class="fa-solid fa-spinner fa-spin"></i>
+            <p>Loading interactive MapLibre map...</p>
           </div>
         </div>
       </div>

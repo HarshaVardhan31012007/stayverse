@@ -31,6 +31,7 @@ app.use(optionalAuth);
 // Global Context Middleware for Views
 app.use((req, res, next) => {
   res.locals.title = 'StayVerse — Modern Vacation Rental Platform';
+  res.locals.maplibreStyleUrl = process.env.MAPLIBRE_STYLE_URL || 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json';
   res.locals.successMsg = req.cookies?.successMsg || null;
   res.locals.errorMsg = req.cookies?.errorMsg || null;
 
