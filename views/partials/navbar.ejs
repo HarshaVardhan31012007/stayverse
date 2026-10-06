@@ -1,0 +1,47 @@
+<header class="navbar-wrapper">
+  <nav class="navbar container">
+    <a href="/" class="nav-brand">
+      <span class="brand-icon"><i class="fa-solid fa-compass"></i></span>
+      <span class="brand-text">Stay<span class="brand-accent">Verse</span></span>
+    </a>
+
+    <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <div class="nav-menu" id="navMenu">
+      <ul class="nav-links">
+        <li><a href="/" class="nav-link active"><i class="fa-solid fa-house"></i> Home</a></li>
+        <li><a href="/properties" class="nav-link"><i class="fa-solid fa-magnifying-glass"></i> Explore Stays</a></li>
+      </ul>
+
+      <div class="nav-auth">
+        <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+          <div class="user-dropdown">
+            <button class="user-menu-btn" id="userMenuBtn">
+              <span class="user-avatar"><%= currentUser.name ? currentUser.name.charAt(0).toUpperCase() : 'U' %></span>
+              <span class="user-name"><%= currentUser.name %></span>
+              <span class="user-role-badge badge-<%= currentUser.role %>"><%= currentUser.role %></span>
+              <i class="fa-solid fa-chevron-down"></i>
+            </button>
+            <div class="dropdown-content" id="userDropdownContent">
+              <% if (currentUser.role === 'host') { %>
+                <a href="/dashboard/host" class="dropdown-item"><i class="fa-solid fa-chart-line"></i> Host Dashboard</a>
+                <a href="/properties/new" class="dropdown-item"><i class="fa-solid fa-plus-circle"></i> Create Listing</a>
+              <% } else { %>
+                <a href="/dashboard/traveler" class="dropdown-item"><i class="fa-solid fa-suitcase"></i> My Bookings</a>
+              <% } %>
+              <div class="dropdown-divider"></div>
+              <form action="/auth/logout" method="POST" class="inline-form">
+                <button type="submit" class="dropdown-item logout-btn"><i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out</button>
+              </form>
+            </div>
+          </div>
+        <% } else { %>
+          <a href="/auth/login" class="btn btn-ghost"><i class="fa-solid fa-right-to-bracket"></i> Sign In</a>
+          <a href="/auth/register" class="btn btn-primary"><i class="fa-solid fa-user-plus"></i> Get Started</a>
+        <% } %>
+      </div>
+    </div>
+  </nav>
+</header>

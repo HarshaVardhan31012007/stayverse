@@ -1,0 +1,55 @@
+<% layout('layouts/boilerplate') %>
+
+<div class="error-container">
+  <div class="error-card">
+    <div class="error-code-badge"><%= statusCode || 500 %></div>
+    
+    <div class="error-icon">
+      <% if (statusCode === 404) { %>
+        <i class="fa-solid fa-compass-drafting"></i>
+      <% } else if (statusCode === 403 || statusCode === 401) { %>
+        <i class="fa-solid fa-lock"></i>
+      <% } else if (statusCode === 409) { %>
+        <i class="fa-solid fa-calendar-xmark"></i>
+      <% } else { %>
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      <% } %>
+    </div>
+
+    <h1 class="error-title">
+      <% if (statusCode === 404) { %>
+        Page Not Found
+      <% } else if (statusCode === 401) { %>
+        Unauthorized Access
+      <% } else if (statusCode === 403) { %>
+        Forbidden Request
+      <% } else if (statusCode === 409) { %>
+        Conflict Detected
+      <% } else { %>
+        Something Went Wrong
+      <% } %>
+    </h1>
+
+    <p class="error-description">
+      <%= message || 'An unexpected error occurred while processing your request.' %>
+    </p>
+
+    <div class="error-actions">
+      <a href="/" class="btn btn-primary">
+        <i class="fa-solid fa-house"></i> Return to Safety (Home)
+      </a>
+      <button onclick="window.history.back()" class="btn btn-outline">
+        <i class="fa-solid fa-arrow-left"></i> Go Back
+      </button>
+    </div>
+
+    <% if (typeof stack !== 'undefined' && stack) { %>
+      <div class="error-debug">
+        <details>
+          <summary><i class="fa-solid fa-code"></i> Developer Stack Trace (Development Only)</summary>
+          <pre class="error-stack"><code><%= stack %></code></pre>
+        </details>
+      </div>
+    <% } %>
+  </div>
+</div>

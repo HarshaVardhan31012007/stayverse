@@ -1,0 +1,77 @@
+<% layout('layouts/boilerplate') %>
+
+<section class="hero-section">
+  <div class="hero-content">
+    <div class="hero-badge">
+      <span class="pulse-dot"></span> Next-Generation Vacation Rentals
+    </div>
+    <h1 class="hero-title">
+      Find Your Sanctuary, <br>
+      <span class="gradient-text">Anywhere in the World</span>
+    </h1>
+    <p class="hero-subtitle">
+      Explore handpicked architectural homes, coastal villas, and remote getaways with interactive geospatial mapping and real-time instant booking.
+    </p>
+
+    <div class="hero-actions">
+      <a href="/properties" class="btn btn-primary btn-lg">
+        <i class="fa-solid fa-magnifying-glass"></i> Browse Properties
+      </a>
+      <a href="/auth/register" class="btn btn-outline btn-lg">
+        <i class="fa-solid fa-house-chimney"></i> Become a Host
+      </a>
+    </div>
+
+    <!-- Live system metrics cards -->
+    <div class="hero-stats">
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-layer-group"></i></div>
+        <div class="stat-info">
+          <span class="stat-number">MVC</span>
+          <span class="stat-label">Clean Architecture</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-map-location-dot"></i></div>
+        <div class="stat-info">
+          <span class="stat-number">2dsphere</span>
+          <span class="stat-label">Geospatial Index</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-shield-halved"></i></div>
+        <div class="stat-info">
+          <span class="stat-number">JWT + ACID</span>
+          <span class="stat-label">Concurrency-Safe</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="features-preview">
+  <div class="section-header">
+    <span class="section-tag">System Capabilities</span>
+    <h2 class="section-title">Engineered for Scale and Reliability</h2>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fa-solid fa-compass"></i></div>
+      <h3>MapLibre GL Discovery</h3>
+      <p>High-performance vector tile rendering with interactive property pins and radius-based bounding box filtering.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fa-solid fa-lock"></i></div>
+      <h3>Concurrency-Safe Engine</h3>
+      <p>Guaranteed double-booking prevention backed by MongoDB transaction session isolation.</p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon"><i class="fa-solid fa-brain"></i></div>
+      <h3>Smart Proximity Ranking</h3>
+      <p>Deterministic geospatial scoring that combines distance, rating aggregates, and review velocity.</p>
+    </div>
+  </div>
+</section>
