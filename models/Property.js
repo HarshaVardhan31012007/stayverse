@@ -28,7 +28,7 @@ const propertySchema = new mongoose.Schema(
     pricePerNight: {
       type: Number,
       required: [true, 'Price is required'],
-      min: [1, 'Price must be at least $1'],
+      min: [1, 'Price must be at least ₹1'],
     },
     priceUnit: {
       type: String,
