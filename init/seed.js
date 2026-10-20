@@ -5,7 +5,7 @@ const Property = require('../models/Property');
 const { connectDB, disconnectDB } = require('../config/db');
 
 // Sample listings with GeoJSON coordinates
-const rawListings = require('../../init/data.js').data;
+const rawListings = require('./data.js').data;
 
 const seedDatabase = async () => {
   try {
