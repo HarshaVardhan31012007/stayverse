@@ -45,13 +45,14 @@
         src="<%= (property.images && property.images[0] && property.images[0].url) ? property.images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=80' %>" 
         alt="<%= property.title %>"
         class="img-featured"
+        onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=80';"
       >
     </div>
     <% if (property.images && property.images.length > 1) { %>
       <div class="gallery-thumbnails">
         <% property.images.slice(1, 5).forEach((img, i) => { %>
           <div class="thumb-wrap">
-            <img src="<%= img.url %>" alt="Photo <%= i + 2 %>" class="img-thumb">
+            <img src="<%= img.url %>" alt="Photo <%= i + 2 %>" class="img-thumb" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80';">
           </div>
         <% }) %>
       </div>
