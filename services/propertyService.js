@@ -105,6 +105,7 @@ class PropertyService {
       title,
       description,
       pricePerNight,
+      priceUnit = 'night',
       address,
       city,
       country,
@@ -124,10 +125,14 @@ class PropertyService {
     // Format images
     const uploadedImages = formatUploadedImages(files);
 
+    const validPriceUnits = ['night', 'day', 'week', 'month'];
+    const chosenUnit = validPriceUnits.includes(priceUnit) ? priceUnit : 'night';
+
     const property = new Property({
       title: title.trim(),
       description: description.trim(),
       pricePerNight: Number(pricePerNight),
+      priceUnit: chosenUnit,
       address: address.trim(),
       city: city.trim(),
       country: country.trim(),
@@ -151,6 +156,7 @@ class PropertyService {
       title,
       description,
       pricePerNight,
+      priceUnit,
       address,
       city,
       country,
@@ -162,6 +168,9 @@ class PropertyService {
     if (title) property.title = title.trim();
     if (description) property.description = description.trim();
     if (pricePerNight) property.pricePerNight = Number(pricePerNight);
+    if (priceUnit && ['night', 'day', 'week', 'month'].includes(priceUnit)) {
+      property.priceUnit = priceUnit;
+    }
     if (address) property.address = address.trim();
     if (city) property.city = city.trim();
     if (country) property.country = country.trim();

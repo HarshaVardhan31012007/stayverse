@@ -79,7 +79,7 @@
             <div class="property-card-footer">
               <div class="property-price">
                 <span class="price-val">$<%= prop.pricePerNight.toLocaleString() %></span>
-                <span class="price-unit">/ night</span>
+                <span class="price-unit">/ <%= prop.priceUnit || 'night' %></span>
               </div>
               <span class="btn-card-view">View Details &rarr;</span>
             </div>

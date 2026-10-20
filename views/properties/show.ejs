@@ -130,7 +130,7 @@
         <div class="widget-price-header">
           <div class="widget-price">
             <span class="price-amount">$<%= property.pricePerNight.toLocaleString() %></span>
-            <span class="price-period">/ night</span>
+            <span class="price-period">/ <%= property.priceUnit || 'night' %></span>
           </div>
           <div class="widget-rating">
             <i class="fa-solid fa-star text-warning"></i>

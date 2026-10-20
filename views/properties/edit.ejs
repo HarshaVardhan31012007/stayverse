@@ -43,20 +43,32 @@
         ><%= property.description %></textarea>
       </div>
 
-      <!-- Price -->
-      <div class="form-group">
-        <label for="pricePerNight" class="form-label">Price per Night (USD) *</label>
-        <div class="input-currency-wrap">
-          <span class="currency-prefix">$</span>
-          <input 
-            type="number" 
-            name="pricePerNight" 
-            id="pricePerNight" 
-            class="form-control-plain with-prefix" 
-            value="<%= property.pricePerNight %>"
-            required
-            min="1"
-          >
+      <!-- Pricing & Billing Unit -->
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="pricePerNight" class="form-label">Price (USD) *</label>
+          <div class="input-currency-wrap">
+            <span class="currency-prefix">$</span>
+            <input 
+              type="number" 
+              name="pricePerNight" 
+              id="pricePerNight" 
+              class="form-control-plain with-prefix" 
+              value="<%= property.pricePerNight %>"
+              required
+              min="1"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="priceUnit" class="form-label">Pricing Rate / Duration *</label>
+          <select name="priceUnit" id="priceUnit" class="form-control-plain">
+            <option value="night" <%= (!property.priceUnit || property.priceUnit === 'night') ? 'selected' : '' %>>per night</option>
+            <option value="day" <%= (property.priceUnit === 'day') ? 'selected' : '' %>>per day</option>
+            <option value="week" <%= (property.priceUnit === 'week') ? 'selected' : '' %>>per week</option>
+            <option value="month" <%= (property.priceUnit === 'month') ? 'selected' : '' %>>per month</option>
+          </select>
         </div>
       </div>
 

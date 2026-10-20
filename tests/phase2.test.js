@@ -90,9 +90,31 @@ describe('MODULE 2: Property Management (CRUD, Ownership RBAC, Filters, Uploads)
       expect(res.body.success).toBe(true);
       expect(res.body.data.title).toBe('Seaside Sanctuary Villa');
       expect(res.body.data.pricePerNight).toBe(350);
+      expect(res.body.data.priceUnit).toBe('night'); // Default unit
       expect(res.body.data.location.type).toBe('Point');
       expect(res.body.data.location.coordinates).toEqual([-118.7798, 34.0259]);
       expect(res.body.data.host.toString()).toBe(host1User.id);
+    });
+
+    it('should allow setting custom priceUnit (e.g. per day or per week)', async () => {
+      const res = await request(app)
+        .post('/api/properties')
+        .set('Authorization', `Bearer ${host1Token}`)
+        .send({
+          title: 'Daily Event Villa',
+          description: 'Spacious villa available for day events or stays.',
+          pricePerNight: 500,
+          priceUnit: 'day',
+          address: '50 Sunset Blvd',
+          city: 'Los Angeles',
+          country: 'United States',
+          latitude: 34.0928,
+          longitude: -118.3287,
+        })
+        .set('Accept', 'application/json');
+
+      expect(res.status).toBe(201);
+      expect(res.body.data.priceUnit).toBe('day');
     });
 
     it('should reject creation without authentication (401 Unauthorized)', async () => {

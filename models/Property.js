@@ -27,8 +27,16 @@ const propertySchema = new mongoose.Schema(
     },
     pricePerNight: {
       type: Number,
-      required: [true, 'Price per night is required'],
-      min: [1, 'Price per night must be at least $1'],
+      required: [true, 'Price is required'],
+      min: [1, 'Price must be at least $1'],
+    },
+    priceUnit: {
+      type: String,
+      enum: {
+        values: ['night', 'day', 'week', 'month'],
+        message: '{VALUE} is not a valid pricing unit. Choose "night", "day", "week", or "month"',
+      },
+      default: 'night',
     },
     location: {
       type: {

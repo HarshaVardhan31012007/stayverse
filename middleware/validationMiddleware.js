@@ -53,7 +53,7 @@ const validateLogin = (req, res, next) => {
  * Middleware to validate property creation and updates
  */
 const validateProperty = (req, res, next) => {
-  const { title, description, pricePerNight, address, city, country, latitude, longitude } = req.body;
+  const { title, description, pricePerNight, priceUnit, address, city, country, latitude, longitude } = req.body;
   const errors = [];
 
   if (!title || typeof title !== 'string' || title.trim().length === 0) {
@@ -66,7 +66,11 @@ const validateProperty = (req, res, next) => {
 
   const price = Number(pricePerNight);
   if (isNaN(price) || price <= 0) {
-    errors.push('Price per night must be a valid number greater than 0');
+    errors.push('Price must be a valid number greater than 0');
+  }
+
+  if (priceUnit && !['night', 'day', 'week', 'month'].includes(priceUnit)) {
+    errors.push('Pricing rate must be one of: night, day, week, month');
   }
 
   if (!address || typeof address !== 'string' || address.trim().length === 0) {

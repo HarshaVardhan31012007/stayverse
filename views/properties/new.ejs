@@ -45,21 +45,33 @@
         ><%= typeof property !== 'undefined' && property && property.description ? property.description : '' %></textarea>
       </div>
 
-      <!-- Price -->
-      <div class="form-group">
-        <label for="pricePerNight" class="form-label">Price per Night (USD) *</label>
-        <div class="input-currency-wrap">
-          <span class="currency-prefix">$</span>
-          <input 
-            type="number" 
-            name="pricePerNight" 
-            id="pricePerNight" 
-            class="form-control-plain with-prefix" 
-            placeholder="195" 
-            min="1"
-            value="<%= typeof property !== 'undefined' && property && property.pricePerNight ? property.pricePerNight : '' %>"
-            required
-          >
+      <!-- Pricing & Billing Unit -->
+      <div class="form-row-2">
+        <div class="form-group">
+          <label for="pricePerNight" class="form-label">Price (USD) *</label>
+          <div class="input-currency-wrap">
+            <span class="currency-prefix">$</span>
+            <input 
+              type="number" 
+              name="pricePerNight" 
+              id="pricePerNight" 
+              class="form-control-plain with-prefix" 
+              placeholder="195" 
+              min="1"
+              value="<%= typeof property !== 'undefined' && property && property.pricePerNight ? property.pricePerNight : '' %>"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="priceUnit" class="form-label">Pricing Rate / Duration *</label>
+          <select name="priceUnit" id="priceUnit" class="form-control-plain">
+            <option value="night" <%= (typeof property !== 'undefined' && property && property.priceUnit === 'night') ? 'selected' : '' %>>per night</option>
+            <option value="day" <%= (typeof property !== 'undefined' && property && property.priceUnit === 'day') ? 'selected' : '' %>>per day</option>
+            <option value="week" <%= (typeof property !== 'undefined' && property && property.priceUnit === 'week') ? 'selected' : '' %>>per week</option>
+            <option value="month" <%= (typeof property !== 'undefined' && property && property.priceUnit === 'month') ? 'selected' : '' %>>per month</option>
+          </select>
         </div>
       </div>
 

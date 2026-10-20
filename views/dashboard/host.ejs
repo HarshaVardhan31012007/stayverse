@@ -28,7 +28,7 @@
               <span class="host-card-rating"><i class="fa-solid fa-star text-warning"></i> <%= prop.averageRating > 0 ? prop.averageRating.toFixed(1) : 'New' %></span>
             </div>
             <h3 class="host-card-title"><%= prop.title %></h3>
-            <p class="host-card-price">$<%= prop.pricePerNight.toLocaleString() %> <span class="text-muted">/ night</span></p>
+            <p class="host-card-price">$<%= prop.pricePerNight.toLocaleString() %> <span class="text-muted">/ <%= prop.priceUnit || 'night' %></span></p>
 
             <div class="host-card-actions">
               <a href="/properties/<%= prop._id %>" class="btn btn-outline btn-sm">
