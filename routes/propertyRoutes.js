@@ -59,4 +59,8 @@ router.delete(
   catchAsync(propertyController.destroy)
 );
 
+// 9. Nested Reviews routes
+const reviewRoutes = require('./reviewRoutes');
+router.use('/:id/reviews', reviewRoutes);
+
 module.exports = router;

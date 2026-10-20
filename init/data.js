@@ -1,12 +1,12 @@
 const sampleListings = [
   {
     title: "Cozy Beachfront Cottage",
-    description: "Escape to this charming beachfront cottage for a relaxing getaway. Enjoy stunning ocean views and easy access to the beach.",
+    description: "Escape to this charming beachfront cottage for a relaxing getaway. Enjoy panoramic ocean views, private sundeck, and direct barefoot access to pristine sandy beaches.",
     image: {
       filename: "listingimage",
-      url: "https://images.unsplash.com/photo-1552733407-5d5c46c3bb3b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTB8fHRyYXZlbHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60"
+      url: "https://images.unsplash.com/photo-1552733407-5d5c46c3bb3b?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 1500,
+    price: 12500,
     location: "Malibu",
     country: "United States",
     geometry: {
@@ -16,12 +16,12 @@ const sampleListings = [
   },
   {
     title: "Modern Loft in Downtown",
-    description: "Stay in the heart of the city in this stylish loft apartment. Perfect for urban explorers!",
+    description: "Stay in the heart of the city in this stylish loft apartment. Featuring double-height exposed brick ceilings, floor-to-ceiling skyline windows, and high-speed fibre internet.",
     image: {
       filename: "listingimage",
-      url: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTh8fHRyYXZlbHxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60"
+      url: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 1200,
+    price: 8500,
     location: "New York City",
     country: "United States",
     geometry: {
@@ -31,12 +31,12 @@ const sampleListings = [
   },
   {
     title: "Mountain Retreat",
-    description: "Unplug and unwind in this peaceful mountain cabin. Surrounded by nature, it's a perfect place to recharge.",
+    description: "Unplug and unwind in this peaceful alpine mountain cabin. Surrounded by nature, pine forests, an outdoor cedar hot tub, and stone wood-burning fireplace.",
     image: {
       filename: "listingimage",
-      url: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8N3x8aG90ZWxzfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60"
+      url: "https://images.unsplash.com/photo-1571896349842-33c89424de2d?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 1000,
+    price: 9500,
     location: "Aspen",
     country: "United States",
     geometry: {
@@ -46,12 +46,12 @@ const sampleListings = [
   },
   {
     title: "Historic Villa in Tuscany",
-    description: "Experience the charm of Tuscany in this beautifully restored villa. Explore the rolling hills and vineyards.",
+    description: "Experience the timeless charm of Tuscany in this beautifully restored 18th-century stone villa. Explore rolling olive groves, private vineyards, and sunset wine tastings.",
     image: {
       filename: "listingimage",
-      url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8aG90ZWxzfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60"
+      url: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 2500,
+    price: 22000,
     location: "Florence",
     country: "Italy",
     geometry: {
@@ -61,12 +61,12 @@ const sampleListings = [
   },
   {
     title: "Secluded Treehouse Getaway",
-    description: "Live among the treetops in this unique treehouse retreat. A true nature lover's paradise.",
+    description: "Live among the majestic cedar treetops in this architectural treehouse retreat. Complete with wrap-around deck, skylight canopy views, and organic breakfast baskets.",
     image: {
       filename: "listingimage",
-      url: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTV8fGhvdGVsc3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60"
+      url: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 800,
+    price: 7200,
     location: "Portland",
     country: "United States",
     geometry: {
@@ -76,12 +76,12 @@ const sampleListings = [
   },
   {
     title: "Beachfront Paradise",
-    description: "Step out of your door onto the sandy beach. This beachfront condo offers the ultimate relaxation.",
+    description: "Step out of your door onto white coral sands. This beachfront villa offers private infinity plunge pools, outdoor kitchen, and world-class snorkeling steps away.",
     image: {
       filename: "listingimage",
-      url: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fGhvdGVsc3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60"
+      url: "https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 2000,
+    price: 16000,
     location: "Cancun",
     country: "Mexico",
     geometry: {
@@ -91,12 +91,12 @@ const sampleListings = [
   },
   {
     title: "Countryside Bed & Breakfast",
-    description: "Charming B&B with a rustic feel, delicious homemade breakfasts, and scenic views.",
+    description: "Charming stone B&B with a rustic modern feel, farm-to-table homemade breakfasts, estate vineyard tours, and tranquil lavender gardens.",
     image: {
       filename: "listingimage",
       url: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 600,
+    price: 5400,
     location: "Napa Valley",
     country: "United States",
     geometry: {
@@ -106,12 +106,12 @@ const sampleListings = [
   },
   {
     title: "Tropical Bungalow",
-    description: "Private bungalow surrounded by palm trees and tropical gardens. Perfect for couples!",
+    description: "Private wooden bungalow surrounded by lush palm trees, frangipani blossoms, and private plunge pool. Ideal romantic hideaway with outdoor volcanic stone bath.",
     image: {
       filename: "listingimage",
-      url: "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YnVuZ2Fsb3d8ZW58MHx8MHx8fDA%3D&auto=format&fit=crop&w=800&q=60"
+      url: "https://images.unsplash.com/photo-1496417263034-38ec4f0b665a?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 1100,
+    price: 8900,
     location: "Bali",
     country: "Indonesia",
     geometry: {
@@ -121,12 +121,12 @@ const sampleListings = [
   },
   {
     title: "Ski-In/Ski-Out Chalet",
-    description: "Hit the slopes right from your doorstep. Cozy chalet with a fireplace and hot tub.",
+    description: "Hit the snowy slopes right from your ski locker. Luxury alpine chalet featuring vaulted timber ceilings, outdoor heated hot tub, and panoramic glacier vistas.",
     image: {
       filename: "listingimage",
       url: "https://images.unsplash.com/photo-1502784444187-359ac186c5bb?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 1800,
+    price: 19500,
     location: "Whistler",
     country: "Canada",
     geometry: {
@@ -136,12 +136,12 @@ const sampleListings = [
   },
   {
     title: "Desert Glamping Tent",
-    description: "Luxurious tent in the desert with starry night views and all modern amenities.",
+    description: "Ultra-luxury safari tent situated in golden sand dunes. Features handwoven Moroccan rugs, private plunge pool, and gourmet dining beneath the Sahara starlight.",
     image: {
       filename: "listingimage",
       url: "https://images.unsplash.com/photo-1510312305653-8ed496efae75?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 900,
+    price: 7800,
     location: "Sahara",
     country: "Morocco",
     geometry: {
@@ -151,12 +151,12 @@ const sampleListings = [
   },
   {
     title: "Luxury Penthouse",
-    description: "Enjoy the skyline views from this stunning penthouse with floor-to-ceiling windows.",
+    description: "Soar above the clouds with 360-degree skyline and sea views from this lavish high-floor penthouse. Complete with private elevator and infinity balcony terrace.",
     image: {
       filename: "listingimage",
-      url: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OXx8cGVudGhvdXNlfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60"
+      url: "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 3000,
+    price: 32000,
     location: "Dubai",
     country: "UAE",
     geometry: {
@@ -166,12 +166,12 @@ const sampleListings = [
   },
   {
     title: "Igloo Adventure Stay",
-    description: "Spend a night in a real igloo! Experience the Northern Lights from your bed.",
+    description: "Spend an unforgettable night inside a thermal glass-roof igloo. Sleep under the dancing Northern Lights with cozy reindeer hides and heated oak flooring.",
     image: {
       filename: "listingimage",
-      url: "https://images.unsplash.com/photo-1605792657660-596af9009e82?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8aWdsb29zfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60"
+      url: "https://images.unsplash.com/photo-1605792657660-596af9009e82?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 1400,
+    price: 15000,
     location: "Lapland",
     country: "Finland",
     geometry: {
@@ -181,12 +181,12 @@ const sampleListings = [
   },
   {
     title: "Jungle Tree Villa",
-    description: "Luxury villa nestled in the jungle, complete with infinity pool and open-air bath.",
+    description: "Architect-designed luxury villa suspended high in the tropical canopy, overlooking cascading river ravines, private infinity edge pool, and yoga pavilion.",
     image: {
       filename: "listingimage",
-      url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8dHJlZSUyMHZpbGxhfGVufDB8fDB8fHww&auto=format&fit=crop&w=800&q=60"
+      url: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 2200,
+    price: 18000,
     location: "Ubud",
     country: "Indonesia",
     geometry: {
@@ -196,12 +196,12 @@ const sampleListings = [
   },
   {
     title: "Clifftop Lighthouse Stay",
-    description: "Sleep in a real lighthouse overlooking the cliffs and the sea. Breathtaking views!",
+    description: "Wake to dramatic ocean surf crashing against rugged cliffs in this restored maritime lighthouse cottage. Private coastline trail and 360-degree lantern viewing room.",
     image: {
       filename: "listingimage",
-      url: "https://images.unsplash.com/photo-1523731407965-2430cd12f5e4?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NHx8bGlnaHRob3VzZXxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=800&q=60"
+      url: "https://images.unsplash.com/photo-1523731407965-2430cd12f5e4?auto=format&fit=crop&w=1200&q=80"
     },
-    price: 1600,
+    price: 13500,
     location: "Cornwall",
     country: "United Kingdom",
     geometry: {

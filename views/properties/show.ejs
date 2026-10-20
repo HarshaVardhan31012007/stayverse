@@ -121,7 +121,109 @@
             <i class="fa-solid fa-spinner fa-spin"></i>
             <p>Loading interactive MapLibre map...</p>
           </div>
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- Guest Reviews & Ratings Section -->
+      <div class="property-section reviews-section">
+        <div class="reviews-header">
+          <div class="reviews-header-left">
+            <h2>Guest Reviews & Ratings</h2>
+            <div class="reviews-rating-summary">
+              <span class="big-rating"><i class="fa-solid fa-star text-warning"></i> <%= property.averageRating > 0 ? property.averageRating.toFixed(1) : 'New' %></span>
+              <span class="rating-reviews-count">• <%= property.reviewCount || 0 %> <%= (property.reviewCount === 1) ? 'verified review' : 'verified reviews' %></span>
+            </div>
+          </div>
         </div>
+
+        <!-- Add Review Form -->
+        <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+          <div class="add-review-card">
+            <h3>Leave a Review</h3>
+            <p class="text-muted">Share your experience to help future guests plan their stay.</p>
+            <form action="/properties/<%= property._id %>/reviews" method="POST" class="review-form">
+              <div class="form-group">
+                <label class="form-label">Your Rating</label>
+                <div class="star-rating-selector">
+                  <input type="radio" id="star5" name="rating" value="5" checked /><label for="star5" title="5 stars"><i class="fa-solid fa-star"></i></label>
+                  <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4 stars"><i class="fa-solid fa-star"></i></label>
+                  <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3 stars"><i class="fa-solid fa-star"></i></label>
+                  <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 stars"><i class="fa-solid fa-star"></i></label>
+                  <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 star"><i class="fa-solid fa-star"></i></label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="comment" class="form-label">Review Comment</label>
+                <textarea 
+                  name="comment" 
+                  id="comment" 
+                  rows="3" 
+                  class="form-control-plain" 
+                  placeholder="How was your stay? Tell other travelers about the location, amenities, and host..."
+                  required
+                ></textarea>
+              </div>
+
+              <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-paper-plane"></i> Submit Review
+              </button>
+            </form>
+          </div>
+        <% } else { %>
+          <div class="login-to-review-banner">
+            <i class="fa-solid fa-comment-dots"></i>
+            <div>
+              <strong>Have you stayed here?</strong>
+              <p>Please <a href="/auth/login" class="text-primary font-weight-bold">sign in</a> to submit a review and rating.</p>
+            </div>
+          </div>
+        <% } %>
+
+        <!-- Existing Reviews List -->
+        <% if (typeof reviews !== 'undefined' && reviews && reviews.length > 0) { %>
+          <div class="reviews-list">
+            <% reviews.forEach(rev => { %>
+              <div class="review-card">
+                <div class="review-card-top">
+                  <div class="reviewer-info">
+                    <div class="reviewer-avatar">
+                      <%= rev.user && rev.user.name ? rev.user.name.charAt(0).toUpperCase() : 'G' %>
+                    </div>
+                    <div>
+                      <h4 class="reviewer-name"><%= rev.user ? rev.user.name : 'Verified Traveler' %></h4>
+                      <span class="review-date"><%= new Date(rev.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) %></span>
+                    </div>
+                  </div>
+
+                  <div class="review-card-right">
+                    <div class="review-stars">
+                      <% for (let s = 1; s <= 5; s++) { %>
+                        <i class="fa-solid fa-star <%= s <= rev.rating ? 'text-warning' : 'text-muted-star' %>"></i>
+                      <% } %>
+                    </div>
+
+                    <% if (typeof currentUser !== 'undefined' && currentUser && rev.user && (currentUser._id.toString() === rev.user._id.toString() || currentUser.id === rev.user.id)) { %>
+                      <form action="/properties/<%= property._id %>/reviews/<%= rev._id %>?_method=DELETE" method="POST" class="inline-form" onsubmit="return confirm('Delete this review?');">
+                        <button type="submit" class="btn-delete-review" title="Delete Review">
+                          <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                      </form>
+                    <% } %>
+                  </div>
+                </div>
+
+                <p class="review-comment"><%= rev.comment %></p>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div class="no-reviews-box">
+            <i class="fa-regular fa-comment-dots"></i>
+            <p>No written reviews yet. Be the first guest to review this stay!</p>
+          </div>
+        <% } %>
       </div>
     </div>
 

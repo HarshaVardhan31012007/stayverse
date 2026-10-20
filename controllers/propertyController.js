@@ -69,6 +69,11 @@ const show = async (req, res, next) => {
     return next(new ExpressError('Property not found', 404));
   }
 
+  const Review = require('../models/Review');
+  const reviews = await Review.find({ property: req.params.id })
+    .populate('user', 'name role')
+    .sort({ createdAt: -1 });
+
   const isApiRequest =
     req.originalUrl.startsWith('/api') ||
     req.xhr ||
@@ -78,12 +83,14 @@ const show = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       data: property,
+      reviews,
     });
   }
 
   res.render('properties/show', {
     title: property.title,
     property,
+    reviews,
   });
 };
 

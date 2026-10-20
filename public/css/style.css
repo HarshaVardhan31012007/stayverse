@@ -1567,6 +1567,207 @@ body.site-body {
 }
 
 /* ==========================================================================
+   REVIEWS & RATINGS SYSTEM
+   ========================================================================== */
+.reviews-section {
+  margin-top: 2.5rem;
+}
+
+.reviews-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.reviews-rating-summary {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1.1rem;
+  margin-top: 0.35rem;
+}
+
+.big-rating {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.rating-reviews-count {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
+.add-review-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+  margin-bottom: 2.5rem;
+}
+
+.add-review-card h3 {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+/* Star Rating Radio Selector */
+.star-rating-selector {
+  display: flex;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  font-size: 1.5rem;
+}
+
+.star-rating-selector input[type="radio"] {
+  display: none;
+}
+
+.star-rating-selector label {
+  color: #4b5563;
+  cursor: pointer;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.star-rating-selector label:hover,
+.star-rating-selector label:hover ~ label,
+.star-rating-selector input[type="radio"]:checked ~ label {
+  color: #f59e0b;
+  transform: scale(1.1);
+}
+
+.login-to-review-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(99, 102, 241, 0.1);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-md);
+  margin-bottom: 2rem;
+}
+
+.login-to-review-banner i {
+  font-size: 1.8rem;
+  color: var(--secondary);
+}
+
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.review-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  transition: var(--transition);
+}
+
+.review-card:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.review-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.85rem;
+}
+
+.reviewer-info {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.reviewer-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--secondary) 0%, #4338ca 100%);
+  color: #fff;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.reviewer-name {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.review-date {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.review-card-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.review-stars {
+  font-size: 0.85rem;
+}
+
+.text-muted-star {
+  color: #374151;
+}
+
+.btn-delete-review {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.3rem;
+  font-size: 0.9rem;
+  transition: var(--transition);
+}
+
+.btn-delete-review:hover {
+  color: #ef4444;
+}
+
+.review-comment {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.no-reviews-box {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: var(--bg-card);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+}
+
+.no-reviews-box i {
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ==========================================================================
    PROPERTY FORM STYLING
    ========================================================================== */
 .property-form-wrapper {
