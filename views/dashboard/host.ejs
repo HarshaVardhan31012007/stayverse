@@ -4,12 +4,48 @@
   <div class="dashboard-header">
     <div>
       <span class="auth-badge"><i class="fa-solid fa-chart-line"></i> Host Central</span>
-      <h1 class="dashboard-title">Your Property Listings</h1>
-      <p class="text-muted">Manage your vacation homes, review performance, and update property details.</p>
+      <h1 class="dashboard-title">Host Performance & Property Inventory</h1>
+      <p class="text-muted">Manage your vacation homes, track guest reservations, and view rental income.</p>
     </div>
     <a href="/properties/new" class="btn btn-primary btn-lg">
       <i class="fa-solid fa-plus-circle"></i> Add New Property
     </a>
+  </div>
+
+  <!-- Host Analytics Stats Bar -->
+  <% 
+    const propCount = properties ? properties.length : 0;
+    const resCount = typeof reservations !== 'undefined' && reservations ? reservations.length : 0;
+    const confirmedRes = typeof reservations !== 'undefined' && reservations ? reservations.filter(r => r.status === 'confirmed') : [];
+    const totalEarnings = confirmedRes.reduce((acc, r) => acc + (r.totalPrice || 0), 0);
+  %>
+  <div class="traveler-stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-house-chimney"></i></div>
+      <div class="stat-details">
+        <span class="stat-number"><%= propCount %></span>
+        <span class="stat-label">Active Listings</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-green"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+      <div class="stat-details">
+        <span class="stat-number">&#8377;<%= totalEarnings.toLocaleString('en-IN') %></span>
+        <span class="stat-label">Total Booking Revenue</span>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon stat-icon-cyan"><i class="fa-solid fa-user-check"></i></div>
+      <div class="stat-details">
+        <span class="stat-number"><%= confirmedRes.length %></span>
+        <span class="stat-label">Guest Reservations</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 1: Property Inventory -->
+  <div class="host-section-title-bar">
+    <h2><i class="fa-solid fa-city"></i> Your Properties (<%= propCount %>)</h2>
   </div>
 
   <% if (properties && properties.length > 0) { %>
@@ -56,6 +92,64 @@
       <a href="/properties/new" class="btn btn-primary btn-lg">
         <i class="fa-solid fa-plus-circle"></i> Create Your First Listing
       </a>
+    </div>
+  <% } %>
+
+  <!-- Section 2: Incoming Guest Reservations -->
+  <% if (typeof reservations !== 'undefined' && reservations && reservations.length > 0) { %>
+    <div class="host-section-title-bar" style="margin-top: 3.5rem;">
+      <h2><i class="fa-solid fa-calendar-check"></i> Guest Bookings on Your Properties (<%= reservations.length %>)</h2>
+    </div>
+
+    <div class="host-reservations-table-wrap">
+      <table class="host-table">
+        <thead>
+          <tr>
+            <th>Guest</th>
+            <th>Property</th>
+            <th>Check-in &rarr; Checkout</th>
+            <th>Duration</th>
+            <th>Guests</th>
+            <th>Payout</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% reservations.forEach(r => { %>
+            <tr>
+              <td>
+                <div class="table-user-cell">
+                  <span class="user-avatar-sm"><%= r.user ? r.user.name.charAt(0).toUpperCase() : 'G' %></span>
+                  <div>
+                    <strong><%= r.user ? r.user.name : 'Guest' %></strong>
+                    <span class="text-muted" style="display:block; font-size: 0.75rem;"><%= r.user ? r.user.email : '' %></span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <% if (r.property) { %>
+                  <a href="/properties/<%= r.property._id %>" class="table-prop-link"><%= r.property.title %></a>
+                <% } else { %>
+                  <span class="text-muted">Listing Removed</span>
+                <% } %>
+              </td>
+              <td>
+                <span class="table-date"><%= new Date(r.checkIn).toLocaleDateString() %> &rarr; <%= new Date(r.checkOut).toLocaleDateString() %></span>
+              </td>
+              <td><%= r.totalNights %> <%= r.totalNights === 1 ? 'night' : 'nights' %></td>
+              <td><%= r.guests %></td>
+              <td><strong>&#8377;<%= r.totalPrice.toLocaleString('en-IN') %></strong></td>
+              <td>
+                <% if (r.status === 'confirmed') { %>
+                  <span class="badge-status-pill badge-green">Confirmed</span>
+                <% } else { %>
+                  <span class="badge-status-pill badge-red"><%= r.status %></span>
+                <% } %>
+              </td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
     </div>
   <% } %>
 </div>

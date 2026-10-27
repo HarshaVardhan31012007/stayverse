@@ -7,7 +7,12 @@
     "start": "node server.js",
     "dev": "node --watch server.js",
     "seed": "node init/seed.js",
-    "test": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles"
+    "db:check": "node init/inspect.js",
+    "test": "cross-env NODE_ENV=test jest --runInBand --detectOpenHandles",
+    "test:concurrency": "node testConcurrency.js"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   },
   "keywords": [
     "vacation-rental",

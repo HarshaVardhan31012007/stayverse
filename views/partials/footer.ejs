@@ -21,7 +21,9 @@
       <ul>
         <li><a href="/properties">Explore Listings</a></li>
         <li><a href="/properties/nearby">Nearby Search</a></li>
-        <li><a href="/auth/register">Become a Host</a></li>
+        <% if (!(typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'traveler')) { %>
+          <li><a href="/auth/register">Become a Host</a></li>
+        <% } %>
       </ul>
     </div>
 

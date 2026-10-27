@@ -28,7 +28,49 @@ const index = async (req, res) => {
     properties: result.properties,
     pagination: result.pagination,
     filters: req.query,
+    geoFallback: result.geoFallback || false,
   });
+};
+
+// Explore properties near traveler's current location
+const nearby = async (req, res) => {
+  // If coordinates are provided in query string, list properties using geo proximity
+  if (req.query.lat && req.query.lng) {
+    return index(req, res);
+  }
+
+  // Otherwise, load properties and prompt client-side geolocation to locate traveler
+  const result = await propertyService.listProperties({ ...req.query, sort: 'newest' });
+
+  const isApiRequest =
+    req.originalUrl.startsWith('/api') ||
+    req.xhr ||
+    req.headers.accept?.includes('application/json');
+
+  if (isApiRequest) {
+    return res.status(200).json({
+      success: true,
+      count: result.properties.length,
+      pagination: result.pagination,
+      data: result.properties,
+      autoNearMe: true,
+    });
+  }
+
+  res.render('properties/index', {
+    title: 'Nearby Stays & Vacation Rentals',
+    properties: result.properties,
+    pagination: result.pagination,
+    filters: { ...req.query, autoNearMe: 'true' },
+    geoFallback: false,
+    autoNearMe: true,
+  });
+};
+
+// GeoJSON endpoint for interactive MapLibre map exploration
+const getGeoJSON = async (req, res) => {
+  const geojson = await propertyService.getPropertiesGeoJSON(req.query);
+  res.status(200).json(geojson);
 };
 
 // Render form to create new property
@@ -70,9 +112,31 @@ const show = async (req, res, next) => {
   }
 
   const Review = require('../models/Review');
+  const bookingService = require('../services/bookingService');
+
   const reviews = await Review.find({ property: req.params.id })
     .populate('user', 'name role')
     .sort({ createdAt: -1 });
+
+  let reviewEligibility = { canReview: false, reason: 'unauthenticated' };
+  let userReview = null;
+
+  if (req.user) {
+    reviewEligibility = await bookingService.checkReviewEligibility(req.user._id, req.params.id);
+    userReview = reviews.find(
+      (r) =>
+        r.user &&
+        (r.user._id?.toString() === req.user._id.toString() ||
+          r.user.id?.toString() === req.user._id.toString() ||
+          r.user.toString() === req.user._id.toString())
+    );
+  }
+
+  // Fetch smart proximity and quality recommendations
+  const recommendations = await propertyService.getRecommendations(req.params.id, 3);
+
+  // Fetch active and upcoming booked date ranges for availability visibility
+  const bookedRanges = await bookingService.getPropertyBookedRanges(req.params.id);
 
   const isApiRequest =
     req.originalUrl.startsWith('/api') ||
@@ -84,6 +148,10 @@ const show = async (req, res, next) => {
       success: true,
       data: property,
       reviews,
+      reviewEligibility,
+      userReview,
+      recommendations,
+      bookedRanges,
     });
   }
 
@@ -91,6 +159,10 @@ const show = async (req, res, next) => {
     title: property.title,
     property,
     reviews,
+    reviewEligibility,
+    userReview,
+    recommendations,
+    bookedRanges,
   });
 };
 
@@ -148,9 +220,11 @@ const destroy = async (req, res) => {
   res.redirect('/properties');
 };
 
-// View Host's own properties
+// View Host's own properties & reservations
 const getMyProperties = async (req, res) => {
   const properties = await propertyService.getHostProperties(req.user._id);
+  const bookingService = require('../services/bookingService');
+  const reservations = await bookingService.getHostReservations(req.user._id);
 
   const isApiRequest =
     req.originalUrl.startsWith('/api') ||
@@ -162,17 +236,20 @@ const getMyProperties = async (req, res) => {
       success: true,
       count: properties.length,
       data: properties,
+      reservations,
     });
   }
 
   res.render('dashboard/host', {
     title: 'Host Property Inventory',
     properties,
+    reservations,
   });
 };
 
 module.exports = {
   index,
+  nearby,
   renderNew,
   create,
   show,
@@ -180,4 +257,5 @@ module.exports = {
   update,
   destroy,
   getMyProperties,
+  getGeoJSON,
 };

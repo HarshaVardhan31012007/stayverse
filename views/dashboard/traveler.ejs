@@ -1,0 +1,224 @@
+<% layout('layouts/boilerplate') %>
+
+<div class="dashboard-wrapper">
+  <!-- Traveler Dashboard Header -->
+  <div class="dashboard-header">
+    <div>
+      <span class="auth-badge"><i class="fa-solid fa-suitcase"></i> Traveler Hub</span>
+      <h1 class="dashboard-title">My Booked Stays & Itinerary</h1>
+      <p class="text-muted">Keep track of your upcoming vacations, stay dates, and share reviews for completed journeys.</p>
+    </div>
+    <div class="dashboard-header-actions">
+      <a href="/recommendations" class="btn btn-outline btn-lg">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Recommended For You
+      </a>
+      <a href="/properties" class="btn btn-primary btn-lg">
+        <i class="fa-solid fa-magnifying-glass"></i> Explore More Stays
+      </a>
+    </div>
+  </div>
+
+  <% if (bookings && bookings.length > 0) { %>
+    <!-- Summary Stats Bar -->
+    <% 
+      const totalBookings = bookings.length;
+      const upcomingCount = bookings.filter(b => b.isUpcoming).length;
+      const completedCount = bookings.filter(b => b.hasEnded && b.status === 'confirmed').length;
+      const pendingReviews = bookings.filter(b => b.canReview).length;
+    %>
+    <div class="traveler-stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-calendar-days"></i></div>
+        <div class="stat-details">
+          <span class="stat-number"><%= totalBookings %></span>
+          <span class="stat-label">Total Reservations</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-cyan"><i class="fa-solid fa-plane-departure"></i></div>
+        <div class="stat-details">
+          <span class="stat-number"><%= upcomingCount %></span>
+          <span class="stat-label">Upcoming Trips</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-green"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="stat-details">
+          <span class="stat-number"><%= completedCount %></span>
+          <span class="stat-label">Completed Stays</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-amber"><i class="fa-solid fa-star"></i></div>
+        <div class="stat-details">
+          <span class="stat-number"><%= pendingReviews %></span>
+          <span class="stat-label">Awaiting Your Review</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Buttons -->
+    <div class="bookings-filter-bar">
+      <button class="filter-chip active" data-filter="all">All (<%= totalBookings %>)</button>
+      <button class="filter-chip" data-filter="upcoming">Upcoming (<%= upcomingCount %>)</button>
+      <button class="filter-chip" data-filter="completed">Completed / Past (<%= completedCount %>)</button>
+      <button class="filter-chip" data-filter="cancelled">Cancelled</button>
+    </div>
+
+    <!-- Bookings Cards Grid -->
+    <div class="traveler-bookings-grid" id="bookingsGrid">
+      <% bookings.forEach(b => { %>
+        <% 
+          const prop = b.property;
+          const checkInFormatted = new Date(b.checkIn).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+          const checkOutFormatted = new Date(b.checkOut).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+          let category = 'completed';
+          if (b.status === 'cancelled') category = 'cancelled';
+          else if (b.isUpcoming) category = 'upcoming';
+          else if (b.isActive) category = 'upcoming';
+        %>
+        <div class="traveler-booking-card" data-category="<%= category %>">
+          <div class="booking-card-media">
+            <img 
+              src="<%= (prop && prop.images && prop.images[0] && prop.images[0].url) ? prop.images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80' %>" 
+              alt="<%= prop ? prop.title : 'Stay Listing' %>"
+              onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80';"
+            >
+            <div class="booking-status-tag">
+              <% if (b.status === 'cancelled') { %>
+                <span class="status-badge badge-cancelled"><i class="fa-solid fa-ban"></i> Cancelled</span>
+              <% } else if (b.isActive) { %>
+                <span class="status-badge badge-active"><i class="fa-solid fa-circle-dot"></i> Stay In Progress</span>
+              <% } else if (b.isUpcoming) { %>
+                <span class="status-badge badge-upcoming"><i class="fa-solid fa-clock"></i> Upcoming</span>
+              <% } else { %>
+                <span class="status-badge badge-completed"><i class="fa-solid fa-circle-check"></i> Completed Stay</span>
+              <% } %>
+            </div>
+          </div>
+
+          <div class="booking-card-body">
+            <div class="booking-card-meta">
+              <span class="booking-location">
+                <i class="fa-solid fa-location-dot"></i> 
+                <%= prop ? `${prop.city}, ${prop.country}` : 'Unknown Location' %>
+              </span>
+              <% if (prop && prop.host) { %>
+                <span class="booking-host"><i class="fa-solid fa-user-tie"></i> Hosted by <%= prop.host.name %></span>
+              <% } %>
+            </div>
+
+            <h3 class="booking-card-title">
+              <% if (prop) { %>
+                <a href="/properties/<%= prop._id %>"><%= prop.title %></a>
+              <% } else { %>
+                <span>Archived Property</span>
+              <% } %>
+            </h3>
+
+            <!-- Dates Box -->
+            <div class="booking-dates-box">
+              <div class="date-item">
+                <span class="date-label">CHECK-IN</span>
+                <span class="date-val"><%= checkInFormatted %></span>
+              </div>
+              <div class="date-divider">
+                <i class="fa-solid fa-arrow-right"></i>
+                <span class="nights-pill"><%= b.totalNights %> <%= b.totalNights === 1 ? 'night' : 'nights' %></span>
+              </div>
+              <div class="date-item">
+                <span class="date-label">CHECK-OUT</span>
+                <span class="date-val"><%= checkOutFormatted %></span>
+              </div>
+            </div>
+
+            <div class="booking-pricing-row">
+              <div class="booking-guests">
+                <i class="fa-solid fa-user-group"></i> <%= b.guests %> <%= b.guests === 1 ? 'Guest' : 'Guests' %>
+              </div>
+              <div class="booking-total-price">
+                <span class="total-label">Total Paid:</span>
+                <span class="total-amount">&#8377;<%= b.totalPrice.toLocaleString('en-IN') %></span>
+              </div>
+            </div>
+
+            <!-- Review / Action Section -->
+            <div class="booking-card-footer">
+              <% if (prop) { %>
+                <a href="/properties/<%= prop._id %>" class="btn btn-outline btn-sm">
+                  <i class="fa-solid fa-eye"></i> View Property
+                </a>
+              <% } %>
+
+              <% if (b.status === 'confirmed') { %>
+                <% if (b.canReview) { %>
+                  <!-- Stay has ended & not yet reviewed -> Prompt to review -->
+                  <a href="/properties/<%= prop._id %>#reviews" class="btn btn-primary btn-sm btn-highlight-review">
+                    <i class="fa-solid fa-star"></i> Leave a Review
+                  </a>
+                <% } else if (b.userReview) { %>
+                  <!-- User has already reviewed -->
+                  <span class="review-status-tag reviewed">
+                    <i class="fa-solid fa-circle-check"></i> Reviewed (<%= b.userReview.rating %> ⭐)
+                  </span>
+                <% } else if (b.isUpcoming) { %>
+                  <!-- Stay is upcoming: reviews are locked until checkout -->
+                  <span class="review-status-tag locked" title="Reviews unlock after your stay ends">
+                    <i class="fa-solid fa-lock"></i> Review unlocks after checkout
+                  </span>
+                  <form action="/bookings/<%= b._id %>/cancel" method="POST" class="inline-form" onsubmit="return confirm('Are you sure you want to cancel this reservation?');">
+                    <button type="submit" class="btn btn-danger-outline btn-sm">
+                      <i class="fa-solid fa-xmark"></i> Cancel
+                    </button>
+                  </form>
+                <% } else if (b.isActive) { %>
+                  <span class="review-status-tag locked">
+                    <i class="fa-solid fa-house-user"></i> Enjoy your stay! Review opens at checkout
+                  </span>
+                <% } %>
+              <% } else { %>
+                <span class="review-status-tag cancelled">
+                  <i class="fa-solid fa-circle-xmark"></i> Booking was cancelled
+                </span>
+              <% } %>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+  <% } else { %>
+    <!-- Empty State -->
+    <div class="empty-state">
+      <div class="empty-icon"><i class="fa-solid fa-suitcase-rolling"></i></div>
+      <h2>No Bookings Yet</h2>
+      <p>You haven't reserved any stays yet. Explore breathtaking coastal villas, alpine cabins, and city apartments.</p>
+      <a href="/properties" class="btn btn-primary btn-lg">
+        <i class="fa-solid fa-magnifying-glass"></i> Find Your Next Stay
+      </a>
+    </div>
+  <% } %>
+</div>
+
+<script>
+  // Filter tabs for bookings
+  document.addEventListener('DOMContentLoaded', () => {
+    const chips = document.querySelectorAll('.filter-chip');
+    const cards = document.querySelectorAll('.traveler-booking-card');
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+
+        const filter = chip.getAttribute('data-filter');
+        cards.forEach(card => {
+          if (filter === 'all' || card.getAttribute('data-category') === filter) {
+            card.style.display = 'flex';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+  });
+</script>

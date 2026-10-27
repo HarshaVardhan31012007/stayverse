@@ -17,9 +17,17 @@
       <a href="/properties" class="btn btn-primary btn-lg">
         <i class="fa-solid fa-magnifying-glass"></i> Browse Properties
       </a>
-      <a href="/auth/register" class="btn btn-outline btn-lg">
-        <i class="fa-solid fa-house-chimney"></i> Become a Host
-      </a>
+      <% if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'traveler') { %>
+        <%/* Become a Host button hidden for traveler accounts */%>
+      <% } else if (typeof currentUser !== 'undefined' && currentUser && currentUser.role === 'host') { %>
+        <a href="/properties/new" class="btn btn-outline btn-lg">
+          <i class="fa-solid fa-plus-circle"></i> Create Listing
+        </a>
+      <% } else { %>
+        <a href="/auth/register" class="btn btn-outline btn-lg">
+          <i class="fa-solid fa-house-chimney"></i> Become a Host
+        </a>
+      <% } %>
     </div>
 
     <!-- Live system metrics cards -->

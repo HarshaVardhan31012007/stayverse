@@ -1,0 +1,764 @@
+<% layout('layouts/boilerplate') %>
+
+<div class="recommendations-page">
+  <!-- Hero Section -->
+  <section class="rec-hero">
+    <div class="rec-hero-content">
+      <div class="hero-badge">
+        <span class="pulse-dot"></span> Personalized Recommendation Engine
+      </div>
+      <h1 class="rec-hero-title">
+        Stays Matched to <span class="gradient-text">Your Travel Style</span>
+      </h1>
+      <p class="rec-hero-subtitle">
+        Tell us what matters most — whether it's an affordable heritage haveli in Warangal, a beach villa in Goa, or a mountain chalet with high-speed WiFi. Our smart matcher scores every property against your exact preferences.
+      </p>
+    </div>
+  </section>
+
+  <!-- Preferences Studio Form -->
+  <section class="preference-studio-card">
+    <div class="studio-header">
+      <div class="studio-title-wrap">
+        <div class="studio-icon"><i class="fa-solid fa-sliders"></i></div>
+        <div>
+          <h2 class="studio-title">Customize Your Stay Preferences</h2>
+          <p class="studio-subtitle">Select your desired atmosphere, budget, and amenities to generate instant recommendations.</p>
+        </div>
+      </div>
+
+      <% if (typeof savedInProfile !== 'undefined' && savedInProfile) { %>
+        <span class="saved-pref-badge">
+          <i class="fa-solid fa-cloud-check"></i> Loaded from Profile
+        </span>
+      <% } %>
+    </div>
+
+    <form action="/recommendations#resultsSection" method="GET" id="preferenceForm" class="preference-form">
+      <!-- 1. Travel Vibe Selector -->
+      <div class="pref-group">
+        <label class="pref-label">
+          <i class="fa-solid fa-sparkles"></i> 1. Pick Your Travel Vibe / Atmosphere
+        </label>
+        <div class="vibe-cards-grid">
+          <% 
+            const currentVibe = preferences.vibe || '';
+            const vibes = [
+              { id: '', icon: 'fa-globe', label: 'All Vibes', desc: 'No preference — match properties of every type & atmosphere' },
+              { id: 'heritage', icon: 'fa-landmark', label: 'Heritage & Culture', desc: 'Historic forts, havelis & palaces (Warangal, Udaipur)' },
+              { id: 'beach', icon: 'fa-umbrella-beach', label: 'Beach & Coastal', desc: 'Oceanfront villas & surf retreats (Goa, Malibu)' },
+              { id: 'mountain', icon: 'fa-mountain-sun', label: 'Mountain & Alpine', desc: 'Pine cabins, fireplaces & snow chalets (Manali, Aspen)' },
+              { id: 'city', icon: 'fa-city', label: 'City & Urban', desc: 'Modern lofts & skyline penthouses (Hyderabad, New York)' },
+              { id: 'lake', icon: 'fa-water', label: 'Lakeside & Nature', desc: 'Peaceful water retreats & houseboats (Pakhal Lake, Kerala)' },
+              { id: 'wellness', icon: 'fa-spa', label: 'Wellness & Yoga', desc: 'Spiritual retreats & spa sanctuaries (Rishikesh, Bali)' },
+              { id: 'workcation', icon: 'fa-laptop-code', label: 'Workcation', desc: 'Fibre WiFi, dedicated workspace & quiet surroundings' },
+              { id: 'luxury', icon: 'fa-gem', label: 'Ultra Luxury', desc: 'Private pools, chef kitchens & five-star amenities' },
+            ];
+          %>
+          <% vibes.forEach(v => { %>
+            <label class="vibe-card <%= currentVibe === v.id ? 'active' : '' %>">
+              <input type="radio" name="vibe" value="<%= v.id %>" <%= currentVibe === v.id ? 'checked' : '' %>>
+              <div class="vibe-card-inner">
+                <div class="vibe-icon"><i class="fa-solid <%= v.icon %>"></i></div>
+                <div class="vibe-info">
+                  <span class="vibe-name"><%= v.label %></span>
+                  <span class="vibe-desc"><%= v.desc %></span>
+                </div>
+              </div>
+            </label>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- 2. Region / Destination Filter -->
+      <div class="pref-row">
+        <div class="pref-group flex-1">
+          <label class="pref-label">
+            <i class="fa-solid fa-earth-americas"></i> 2. Destination Region
+          </label>
+          <div class="region-pills">
+            <label class="region-pill <%= (!preferences.region || preferences.region === 'all') ? 'active' : '' %>">
+              <input type="radio" name="region" value="all" <%= (!preferences.region || preferences.region === 'all') ? 'checked' : '' %>>
+              <span>🌐 Worldwide</span>
+            </label>
+            <label class="region-pill <%= preferences.region === 'india' ? 'active' : '' %>">
+              <input type="radio" name="region" value="india" <%= preferences.region === 'india' ? 'checked' : '' %>>
+              <span>🇮🇳 India Stays</span>
+            </label>
+            <label class="region-pill <%= preferences.region === 'international' ? 'active' : '' %>">
+              <input type="radio" name="region" value="international" <%= preferences.region === 'international' ? 'checked' : '' %>>
+              <span>🌍 International Only</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="pref-group flex-1">
+          <label class="pref-label">
+            <i class="fa-solid fa-location-dot"></i> Specific City or Landmark (Optional)
+          </label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input 
+              type="text" 
+              name="city" 
+              class="form-control" 
+              placeholder="e.g. Warangal, Hyderabad, Goa, Udaipur..." 
+              value="<%= preferences.city || '' %>"
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Budget Range (Per Night) -->
+      <div class="pref-group">
+        <label class="pref-label">
+          <i class="fa-solid fa-indian-rupee-sign"></i> 3. Nightly Budget Range
+        </label>
+        
+        <!-- Budget Quick Presets -->
+        <div class="budget-presets">
+          <button type="button" class="budget-chip" data-min="0" data-max="3500">
+            🪙 Budget (Under ₹3,500)
+          </button>
+          <button type="button" class="budget-chip" data-min="3500" data-max="8000">
+            💳 Standard (₹3,500 - ₹8,000)
+          </button>
+          <button type="button" class="budget-chip" data-min="8000" data-max="15000">
+            💎 Luxury (₹8,000 - ₹15,000)
+          </button>
+          <button type="button" class="budget-chip" data-min="15000" data-max="50000">
+            👑 Ultra Luxury (₹15,000+)
+          </button>
+          <button type="button" class="budget-chip" data-min="0" data-max="50000">
+            ✨ Any Budget
+          </button>
+        </div>
+
+        <div class="price-inputs-row">
+          <div class="price-input-box">
+            <span class="price-prefix">Min ₹</span>
+            <input 
+              type="number" 
+              name="minPrice" 
+              id="minPriceInput" 
+              class="price-number-input" 
+              placeholder="0" 
+              min="0" 
+              step="500"
+              value="<%= preferences.minPrice || 0 %>"
+            >
+          </div>
+          <span class="price-separator">to</span>
+          <div class="price-input-box">
+            <span class="price-prefix">Max ₹</span>
+            <input 
+              type="number" 
+              name="maxPrice" 
+              id="maxPriceInput" 
+              class="price-number-input" 
+              placeholder="30000" 
+              min="500" 
+              step="500"
+              value="<%= preferences.maxPrice || 30000 %>"
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. Amenities Multi-Select -->
+      <div class="pref-group">
+        <label class="pref-label">
+          <i class="fa-solid fa-list-check"></i> 4. Must-Have Amenities
+        </label>
+        <div class="amenities-chips-grid">
+          <% 
+            const popularAmenities = [
+              { name: 'WiFi', icon: 'fa-wifi' },
+              { name: 'Pool', icon: 'fa-person-swimming' },
+              { name: 'Air Conditioning', icon: 'fa-snowflake' },
+              { name: 'Kitchen', icon: 'fa-kitchen-set' },
+              { name: 'Dedicated Workspace', icon: 'fa-laptop' },
+              { name: 'Free Parking', icon: 'fa-square-parking' },
+              { name: 'Ocean View', icon: 'fa-water' },
+              { name: 'Mountain View', icon: 'fa-mountain' },
+              { name: 'Hot Tub', icon: 'fa-hot-tub-person' },
+              { name: 'Fireplace', icon: 'fa-fire' },
+            ];
+            const selectedAmenities = Array.isArray(preferences.amenities) ? preferences.amenities : [];
+          %>
+          <% popularAmenities.forEach(am => { %>
+            <% const isChecked = selectedAmenities.some(a => a.toLowerCase() === am.name.toLowerCase()); %>
+            <label class="amenity-checkbox-chip <%= isChecked ? 'active' : '' %>">
+              <input 
+                type="checkbox" 
+                name="amenities" 
+                value="<%= am.name %>" 
+                <%= isChecked ? 'checked' : '' %>
+              >
+              <i class="fa-solid <%= am.icon %>"></i>
+              <span><%= am.name %></span>
+            </label>
+          <% }) %>
+        </div>
+      </div>
+
+      <!-- 5. Minimum Rating -->
+      <div class="pref-group">
+        <label class="pref-label">
+          <i class="fa-solid fa-star"></i> 5. Minimum Guest Rating
+        </label>
+        <div class="rating-pills">
+          <label class="rating-pill <%= (!preferences.minRating || Number(preferences.minRating) === 0) ? 'active' : '' %>">
+            <input type="radio" name="minRating" value="0" <%= (!preferences.minRating || Number(preferences.minRating) === 0) ? 'checked' : '' %>>
+            <span>Any Rating</span>
+          </label>
+          <label class="rating-pill <%= Number(preferences.minRating) === 4 ? 'active' : '' %>">
+            <input type="radio" name="minRating" value="4" <%= Number(preferences.minRating) === 4 ? 'checked' : '' %>>
+            <span>⭐ 4.0+ Stars</span>
+          </label>
+          <label class="rating-pill <%= Number(preferences.minRating) === 4.5 ? 'active' : '' %>">
+            <input type="radio" name="minRating" value="4.5" <%= Number(preferences.minRating) === 4.5 ? 'checked' : '' %>>
+            <span>⭐ 4.5+ Highly Rated</span>
+          </label>
+          <label class="rating-pill <%= Number(preferences.minRating) === 4.8 ? 'active' : '' %>">
+            <input type="radio" name="minRating" value="4.8" <%= Number(preferences.minRating) === 4.8 ? 'checked' : '' %>>
+            <span>🌟 4.8+ Exceptional</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 6. Distance & Search Radius from Your Location -->
+      <div class="pref-group">
+        <label class="pref-label">
+          <i class="fa-solid fa-location-crosshairs"></i> 6. Your Location & Search Radius (Within Distance)
+        </label>
+        <p class="pref-help-text">
+          Enter your coordinates (or click <strong>Use My Location</strong>) and set a <strong>Search Radius</strong> to only show stays within that distance from your location.
+        </p>
+        <div class="location-capture-box">
+          <div class="location-btn-row">
+            <button type="button" class="btn btn-outline <%= (typeof preferences !== 'undefined' && preferences.userLat) ? 'active-geo' : '' %>" id="btnCaptureLocation">
+              <i class="fa-solid fa-location-crosshairs"></i> <span id="locationBtnText"><%= (typeof preferences !== 'undefined' && preferences.userLat) ? '📍 Location Detected' : 'Use My Location' %></span>
+            </button>
+            <button type="button" class="btn btn-ghost btn-sm" id="btnClearLocation" style="<%= (typeof preferences !== 'undefined' && preferences.userLat) ? '' : 'display: none;' %>">
+              <i class="fa-solid fa-xmark"></i> Clear Location
+            </button>
+          </div>
+          <div class="coords-inputs-grid">
+            <div class="coord-field">
+              <label for="recUserLat" class="coord-label"><i class="fa-solid fa-arrows-up-down"></i> Latitude</label>
+              <input 
+                type="number" 
+                step="any" 
+                name="userLat" 
+                id="recUserLat" 
+                class="filter-input coord-input" 
+                placeholder="e.g. 17.9784 (Warangal)" 
+                value="<%= typeof preferences !== 'undefined' && preferences.userLat !== null ? preferences.userLat : '' %>"
+              >
+            </div>
+            <div class="coord-field">
+              <label for="recUserLng" class="coord-label"><i class="fa-solid fa-arrows-left-right"></i> Longitude</label>
+              <input 
+                type="number" 
+                step="any" 
+                name="userLng" 
+                id="recUserLng" 
+                class="filter-input coord-input" 
+                placeholder="e.g. 79.5941" 
+                value="<%= typeof preferences !== 'undefined' && preferences.userLng !== null ? preferences.userLng : '' %>"
+              >
+            </div>
+            <div class="coord-field radius-coord-field">
+              <label for="recRadius" class="coord-label"><i class="fa-solid fa-bullseye"></i> Search Radius (km)</label>
+              <div class="radius-input-wrap">
+                <input 
+                  type="number" 
+                  step="1" 
+                  min="1" 
+                  max="5000" 
+                  name="radius" 
+                  id="recRadius" 
+                  class="filter-input coord-input radius-input" 
+                  placeholder="e.g. 50 (within 50 km)" 
+                  value="<%= typeof preferences !== 'undefined' && preferences.radius ? preferences.radius : '' %>"
+                >
+                <span class="radius-unit-label">km</span>
+              </div>
+              <div class="radius-presets-row">
+                <button type="button" class="radius-pill-btn <%= typeof preferences !== 'undefined' && Number(preferences.radius) === 25 ? 'active' : '' %>" data-radius="25">25 km</button>
+                <button type="button" class="radius-pill-btn <%= typeof preferences !== 'undefined' && Number(preferences.radius) === 50 ? 'active' : '' %>" data-radius="50">50 km</button>
+                <button type="button" class="radius-pill-btn <%= typeof preferences !== 'undefined' && Number(preferences.radius) === 100 ? 'active' : '' %>" data-radius="100">100 km</button>
+                <button type="button" class="radius-pill-btn <%= typeof preferences !== 'undefined' && Number(preferences.radius) === 250 ? 'active' : '' %>" data-radius="250">250 km</button>
+                <button type="button" class="radius-pill-btn <%= typeof preferences !== 'undefined' && !preferences.radius ? 'active' : '' %>" data-radius="">Any Distance</button>
+              </div>
+            </div>
+          </div>
+          <span class="location-status" id="locationStatus">
+            <% if (typeof preferences !== 'undefined' && preferences.userLat && preferences.userLng) { %>
+              <i class="fa-solid fa-circle-check text-success"></i> Active — calculating distances from (<%= Number(preferences.userLat).toFixed(4) %>°, <%= Number(preferences.userLng).toFixed(4) %>°)<%= preferences.radius ? ' strictly within ' + preferences.radius + ' km' : '' %>
+            <% } else { %>
+              <i class="fa-solid fa-circle-info text-muted"></i> Optional — enter coordinates and radius to only find stays within that distance
+            <% } %>
+          </span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="studio-actions">
+        <button type="submit" class="btn btn-primary btn-lg" id="btnGenerateRecs">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Smart Match
+        </button>
+
+        <button type="button" class="btn btn-outline" id="btnSavePreferences">
+          <i class="fa-solid fa-bookmark"></i> Save My Preferences
+        </button>
+
+        <a href="/recommendations" class="btn btn-ghost">
+          <i class="fa-solid fa-rotate-left"></i> Reset
+        </a>
+      </div>
+    </form>
+  </section>
+
+  <!-- Live Results Section -->
+  <section class="rec-results-section" id="resultsSection">
+    <% if (typeof hasActivePreferences !== 'undefined' && !hasActivePreferences) { %>
+      <!-- Friendly Initial Helper Prompt -->
+      <div class="initial-prompt-card">
+        <div class="initial-prompt-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <div class="initial-prompt-body">
+          <h3>No Preferences Set Yet</h3>
+          <p>Choose your travel vibe (Heritage, Beach, Mountain...), budget, or amenities in the studio above, then click <strong>"Generate Matches"</strong> to calculate your personalized compatibility scores! Here are our top-rated stays to get you started:</p>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="results-header-bar">
+      <div>
+        <h2 class="results-heading">
+          <% if (typeof hasActivePreferences !== 'undefined' && hasActivePreferences) { %>
+            <i class="fa-solid fa-bullseye gradient-icon"></i> 
+            Your Tailored Stay Matches
+          <% } else { %>
+            <i class="fa-solid fa-star gradient-icon"></i> 
+            Top Rated & Featured Stays
+          <% } %>
+        </h2>
+        <p class="results-sub">
+          <% if (typeof hasActivePreferences !== 'undefined' && hasActivePreferences) { %>
+            Ranked by compatibility with your budget, travel atmosphere, and preferred amenities.
+          <% } else { %>
+            Showing highest-rated stays. Select your preferences above and click "Generate Matches" to see personalized scores.
+          <% } %>
+        </p>
+      </div>
+
+      <div class="results-count-pill">
+        <% if (typeof hasActivePreferences !== 'undefined' && hasActivePreferences) { %>
+          <span><%= recommendations ? recommendations.length : 0 %> Stays Matched</span>
+        <% } else { %>
+          <span><%= recommendations ? recommendations.length : 0 %> Featured Stays</span>
+        <% } %>
+      </div>
+    </div>
+
+    <% if (recommendations && recommendations.length > 0) { %>
+      <!-- Top Pick Spotlight Banner (only shown when preferences have been actively set) -->
+      <% const topMatch = recommendations[0]; %>
+      <% if (typeof hasActivePreferences !== 'undefined' && hasActivePreferences && topMatch.matchPercentage >= 85) { %>
+        <div class="top-match-spotlight">
+          <div class="spotlight-badge">
+            <i class="fa-solid fa-crown"></i> Prime Recommendation
+          </div>
+          <div class="spotlight-content">
+            <div class="spotlight-details">
+              <div class="spotlight-match-tag">
+                <span class="match-pct <%= topMatch.matchBadge %>">
+                  <i class="fa-solid fa-fire-flame-curved"></i> <%= topMatch.matchPercentage %>% Match
+                </span>
+                <span class="match-grade"><%= topMatch.matchGrade %></span>
+              </div>
+              <h3 class="spotlight-title">
+                <a href="/properties/<%= topMatch.property._id %>"><%= topMatch.property.title %></a>
+              </h3>
+              <p class="spotlight-location">
+                <i class="fa-solid fa-location-dot"></i> <%= topMatch.property.city %>, <%= topMatch.property.country %>
+                <% if (typeof topMatch.distanceKm !== 'undefined' && topMatch.distanceKm !== null) { %>
+                  <span class="rec-distance-badge">
+                    <i class="fa-solid fa-route"></i> <%= topMatch.distanceKm < 1 ? (topMatch.distanceKm * 1000).toFixed(0) + ' m' : topMatch.distanceKm.toFixed(1) + ' km' %> away
+                  </span>
+                <% } %>
+              </p>
+              
+              <!-- Reasons why it matched -->
+              <div class="spotlight-reasons">
+                <% topMatch.matchReasons.slice(0, 3).forEach(reason => { %>
+                  <span class="reason-pill"><i class="fa-solid fa-check"></i> <%= reason %></span>
+                <% }) %>
+              </div>
+
+              <div class="spotlight-footer">
+                <div class="spotlight-price">
+                  <span class="price-val">&#8377;<%= topMatch.property.pricePerNight.toLocaleString('en-IN') %></span>
+                  <span class="price-unit">/ <%= topMatch.property.priceUnit || 'night' %></span>
+                </div>
+                <a href="/properties/<%= topMatch.property._id %>" class="btn btn-primary">
+                  View Listing &rarr;
+                </a>
+              </div>
+            </div>
+
+            <div class="spotlight-media">
+              <img 
+                src="<%= (topMatch.property.images && topMatch.property.images[0] && topMatch.property.images[0].url) ? topMatch.property.images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80' %>" 
+                alt="<%= topMatch.property.title %>"
+                onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80';"
+              >
+            </div>
+          </div>
+        </div>
+      <% } %>
+
+      <!-- All Recommended Cards Grid -->
+      <div class="rec-grid">
+        <% recommendations.forEach(rec => { %>
+          <% const prop = rec.property; %>
+          <div class="rec-card">
+            <div class="rec-card-media">
+              <a href="/properties/<%= prop._id %>">
+                <img 
+                  src="<%= (prop.images && prop.images[0] && prop.images[0].url) ? prop.images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80' %>" 
+                  alt="<%= prop.title %>"
+                  loading="lazy"
+                  onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80';"
+                >
+              </a>
+
+              <!-- Glowing Match Score Badge (if preferences set) OR Featured Badge (if initial) -->
+              <% if (typeof hasActivePreferences !== 'undefined' && hasActivePreferences) { %>
+                <div class="rec-match-badge <%= rec.matchBadge %>">
+                  <span class="match-score-number"><%= rec.matchPercentage %>%</span>
+                  <span class="match-score-label">Match</span>
+                </div>
+              <% } else { %>
+                <div class="rec-match-badge badge-featured">
+                  <span class="match-score-number"><i class="fa-solid fa-sparkles"></i></span>
+                  <span class="match-score-label">Featured</span>
+                </div>
+              <% } %>
+
+              <!-- Rating Badge -->
+              <div class="rec-rating-badge">
+                <i class="fa-solid fa-star"></i>
+                <span><%= prop.averageRating > 0 ? prop.averageRating.toFixed(1) : 'New' %></span>
+              </div>
+            </div>
+
+            <div class="rec-card-body">
+              <div class="rec-card-location">
+                <i class="fa-solid fa-location-dot"></i> <%= prop.city %>, <%= prop.country %>
+                <% if (typeof rec.distanceKm !== 'undefined' && rec.distanceKm !== null) { %>
+                  <span class="rec-distance-badge">
+                    <i class="fa-solid fa-route"></i> <%= rec.distanceKm < 1 ? (rec.distanceKm * 1000).toFixed(0) + ' m' : rec.distanceKm.toFixed(1) + ' km' %> away
+                  </span>
+                <% } %>
+              </div>
+
+              <h3 class="rec-card-title">
+                <a href="/properties/<%= prop._id %>"><%= prop.title %></a>
+              </h3>
+
+              <!-- Match Reason Highlights (if preferences set) OR Description Snippet (if initial) -->
+              <% if (typeof hasActivePreferences !== 'undefined' && hasActivePreferences && rec.matchReasons.length > 0) { %>
+                <div class="rec-reasons-box">
+                  <% rec.matchReasons.slice(0, 2).forEach(r => { %>
+                    <div class="rec-reason-item">
+                      <i class="fa-solid fa-circle-check"></i>
+                      <span><%= r %></span>
+                    </div>
+                  <% }) %>
+                </div>
+              <% } else { %>
+                <p class="rec-desc-snippet">
+                  <%= prop.description ? prop.description.slice(0, 95) + '...' : '' %>
+                </p>
+              <% } %>
+
+              <!-- Amenities Tags -->
+              <% if (prop.amenities && prop.amenities.length > 0) { %>
+                <div class="rec-amenities-tags">
+                  <% prop.amenities.slice(0, 3).forEach(am => { %>
+                    <span class="amenity-tag"><%= am %></span>
+                  <% }) %>
+                  <% if (prop.amenities.length > 3) { %>
+                    <span class="amenity-tag">+<%= prop.amenities.length - 3 %></span>
+                  <% } %>
+                </div>
+              <% } %>
+
+              <div class="rec-card-footer">
+                <div class="rec-card-price">
+                  <span class="price-val">&#8377;<%= prop.pricePerNight.toLocaleString('en-IN') %></span>
+                  <span class="price-unit">/ <%= prop.priceUnit || 'night' %></span>
+                </div>
+                <a href="/properties/<%= prop._id %>" class="btn btn-sm btn-primary">
+                  View Stay &rarr;
+                </a>
+              </div>
+            </div>
+          </div>
+        <% }) %>
+      </div>
+
+    <% } else { %>
+      <!-- Empty State -->
+      <div class="rec-empty-state">
+        <div class="empty-icon"><i class="fa-solid fa-filter-circle-xmark"></i></div>
+        <h3>No Stays Match These Preferences</h3>
+        <% if (typeof preferences !== 'undefined' && preferences.radius && preferences.userLat) { %>
+          <p>No properties found within <strong><%= preferences.radius %> km</strong> of your coordinates. Try expanding your search radius (e.g. 100 km or 250 km) or selecting "Any Distance".</p>
+        <% } else { %>
+          <p>Try widening your budget range, choosing "Worldwide" region, or selecting a different travel style.</p>
+        <% } %>
+        <a href="/recommendations" class="btn btn-primary">
+          <i class="fa-solid fa-rotate-left"></i> Reset All Preferences
+        </a>
+      </div>
+    <% } %>
+  </section>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // 1. Interactive Vibe Cards Selection
+    const vibeCards = document.querySelectorAll('.vibe-card');
+    vibeCards.forEach(card => {
+      card.addEventListener('click', () => {
+        vibeCards.forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        const radio = card.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+      });
+    });
+
+    // 2. Interactive Region Pills Selection
+    const regionPills = document.querySelectorAll('.region-pill');
+    regionPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        regionPills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        const radio = pill.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+      });
+    });
+
+    // 3. Interactive Rating Pills Selection
+    const ratingPills = document.querySelectorAll('.rating-pill');
+    ratingPills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        ratingPills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        const radio = pill.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+      });
+    });
+
+    // 4. Interactive Amenity Chips Selection
+    const amenityChips = document.querySelectorAll('.amenity-checkbox-chip');
+    amenityChips.forEach(chip => {
+      const checkbox = chip.querySelector('input[type="checkbox"]');
+      if (checkbox) {
+        checkbox.addEventListener('change', () => {
+          if (checkbox.checked) {
+            chip.classList.add('active');
+          } else {
+            chip.classList.remove('active');
+          }
+        });
+      }
+    });
+
+    // 5. Budget Preset Chips
+    const budgetChips = document.querySelectorAll('.budget-chip');
+    const minInput = document.getElementById('minPriceInput');
+    const maxInput = document.getElementById('maxPriceInput');
+
+    budgetChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        budgetChips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        const minVal = chip.getAttribute('data-min');
+        const maxVal = chip.getAttribute('data-max');
+        if (minInput && minVal !== null) minInput.value = minVal;
+        if (maxInput && maxVal !== null) maxInput.value = maxVal;
+      });
+    });
+
+    // 6. Save Preferences via AJAX
+    const saveBtn = document.getElementById('btnSavePreferences');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        const form = document.getElementById('preferenceForm');
+        const formData = new FormData(form);
+        const data = {};
+        
+        // Extract form values
+        formData.forEach((value, key) => {
+          if (key === 'amenities') {
+            if (!data.amenities) data.amenities = [];
+            data.amenities.push(value);
+          } else {
+            data[key] = value;
+          }
+        });
+
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+
+        try {
+          const res = await fetch('/recommendations/preferences', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: JSON.stringify(data),
+          });
+
+          const json = await res.json();
+          if (json.success) {
+            saveBtn.innerHTML = '<i class="fa-solid fa-check"></i> Preferences Saved!';
+            saveBtn.classList.remove('btn-outline');
+            saveBtn.classList.add('btn-success');
+            setTimeout(() => {
+              saveBtn.innerHTML = '<i class="fa-solid fa-bookmark"></i> Save My Preferences';
+              saveBtn.classList.remove('btn-success');
+              saveBtn.classList.add('btn-outline');
+              saveBtn.disabled = false;
+            }, 2500);
+          }
+        } catch (err) {
+          saveBtn.innerHTML = '<i class="fa-solid fa-bookmark"></i> Save My Preferences';
+          saveBtn.disabled = false;
+          alert('Saved preferences to session/cookie!');
+        }
+      });
+    }
+    // 7. GPS & Coordinate Location & Radius Capture
+    const captureBtn = document.getElementById('btnCaptureLocation');
+    const clearLocBtn = document.getElementById('btnClearLocation');
+    const locationBtnText = document.getElementById('locationBtnText');
+    const locationStatus = document.getElementById('locationStatus');
+    const recUserLng = document.getElementById('recUserLng');
+    const recUserLat = document.getElementById('recUserLat');
+    const recRadius = document.getElementById('recRadius');
+    const radiusPresetBtns = document.querySelectorAll('.radius-pill-btn');
+
+    const updateCoordStatus = () => {
+      const latVal = recUserLat?.value ? parseFloat(recUserLat.value) : null;
+      const lngVal = recUserLng?.value ? parseFloat(recUserLng.value) : null;
+      const radVal = recRadius?.value ? parseInt(recRadius.value, 10) : null;
+
+      // Update preset pills active state
+      if (radiusPresetBtns) {
+        radiusPresetBtns.forEach(btn => {
+          const btnRad = btn.getAttribute('data-radius');
+          if ((!radVal && btnRad === '') || (radVal && Number(btnRad) === radVal)) {
+            btn.classList.add('active');
+          } else {
+            btn.classList.remove('active');
+          }
+        });
+      }
+
+      if (latVal !== null && lngVal !== null && !isNaN(latVal) && !isNaN(lngVal)) {
+        if (locationStatus) {
+          const radiusText = radVal && radVal > 0 ? ` (strictly within ${radVal} km radius)` : '';
+          locationStatus.innerHTML = `<i class="fa-solid fa-circle-check text-success"></i> Active — calculating distances from (${latVal.toFixed(4)}°, ${lngVal.toFixed(4)}°)${radiusText}`;
+        }
+        if (clearLocBtn) clearLocBtn.style.display = 'inline-flex';
+        if (captureBtn) captureBtn.classList.add('active-geo');
+      } else {
+        if (locationStatus) {
+          locationStatus.innerHTML = '<i class="fa-solid fa-circle-info text-muted"></i> Optional — enter coordinates and radius to only find stays within that distance';
+        }
+        if (clearLocBtn) clearLocBtn.style.display = 'none';
+        if (captureBtn) captureBtn.classList.remove('active-geo');
+        if (locationBtnText) locationBtnText.textContent = 'Use My Location';
+      }
+    };
+
+    if (recUserLat && recUserLng) {
+      recUserLat.addEventListener('input', updateCoordStatus);
+      recUserLng.addEventListener('input', updateCoordStatus);
+    }
+
+    if (recRadius) {
+      recRadius.addEventListener('input', updateCoordStatus);
+    }
+
+    if (radiusPresetBtns) {
+      radiusPresetBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const r = btn.getAttribute('data-radius');
+          if (recRadius) recRadius.value = r;
+          updateCoordStatus();
+        });
+      });
+    }
+
+    if (clearLocBtn) {
+      clearLocBtn.addEventListener('click', () => {
+        if (recUserLat) recUserLat.value = '';
+        if (recUserLng) recUserLng.value = '';
+        if (recRadius) recRadius.value = '';
+        updateCoordStatus();
+      });
+    }
+
+    if (captureBtn) {
+      captureBtn.addEventListener('click', () => {
+        if (!navigator.geolocation) {
+          alert('Geolocation is not supported by your browser.');
+          return;
+        }
+
+        captureBtn.disabled = true;
+        if (locationBtnText) locationBtnText.textContent = 'Locating...';
+        const icon = captureBtn.querySelector('i');
+        if (icon) icon.className = 'fa-solid fa-spinner fa-spin';
+
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            if (recUserLng) recUserLng.value = pos.coords.longitude.toFixed(5);
+            if (recUserLat) recUserLat.value = pos.coords.latitude.toFixed(5);
+            if (locationBtnText) locationBtnText.textContent = '📍 Location Detected';
+            if (icon) icon.className = 'fa-solid fa-location-crosshairs';
+            captureBtn.disabled = false;
+            updateCoordStatus();
+          },
+          (err) => {
+            console.warn('[Geolocation] Failed:', err.message);
+            alert('Could not get your location. Please check browser permissions.');
+            if (locationBtnText) locationBtnText.textContent = 'Use My Location';
+            if (icon) icon.className = 'fa-solid fa-location-crosshairs';
+            captureBtn.disabled = false;
+          },
+          { timeout: 10000, enableHighAccuracy: true }
+        );
+      });
+    }
+  });
+
+  // Auto-scroll to results after Smart Match is submitted (page reloads with results)
+  <% if (typeof hasActivePreferences !== 'undefined' && hasActivePreferences) { %>
+    const resultsSection = document.getElementById('resultsSection');
+    if (resultsSection) {
+      // Small delay so the page paints first, then smoothly scrolls
+      setTimeout(() => {
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 180);
+    }
+  <% } %>
+</script>

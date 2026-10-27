@@ -11,8 +11,13 @@
 
     <div class="nav-menu" id="navMenu">
       <ul class="nav-links">
-        <li><a href="/" class="nav-link active"><i class="fa-solid fa-house"></i> Home</a></li>
+        <li><a href="/" class="nav-link"><i class="fa-solid fa-house"></i> Home</a></li>
         <li><a href="/properties" class="nav-link"><i class="fa-solid fa-magnifying-glass"></i> Explore Stays</a></li>
+        <li>
+          <a href="/recommendations" class="nav-link nav-link-smart">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Smart Match
+          </a>
+        </li>
       </ul>
 
       <div class="nav-auth">
@@ -25,9 +30,11 @@
               <i class="fa-solid fa-chevron-down"></i>
             </button>
             <div class="dropdown-content" id="userDropdownContent">
+              <a href="/recommendations" class="dropdown-item"><i class="fa-solid fa-bullseye"></i> My Recommendations</a>
               <% if (currentUser.role === 'host') { %>
                 <a href="/dashboard/host" class="dropdown-item"><i class="fa-solid fa-chart-line"></i> Host Dashboard</a>
                 <a href="/properties/new" class="dropdown-item"><i class="fa-solid fa-plus-circle"></i> Create Listing</a>
+                <a href="/dashboard/traveler" class="dropdown-item"><i class="fa-solid fa-suitcase"></i> My Trips & Bookings</a>
               <% } else { %>
                 <a href="/dashboard/traveler" class="dropdown-item"><i class="fa-solid fa-suitcase"></i> My Bookings</a>
               <% } %>

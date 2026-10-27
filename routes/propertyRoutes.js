@@ -27,6 +27,12 @@ router.post(
 // 4. View host's own properties
 router.get('/my', requireAuth, requireRole('host'), catchAsync(propertyController.getMyProperties));
 
+// 4.1 GeoJSON FeatureCollection for interactive map exploration
+router.get('/geojson', catchAsync(propertyController.getGeoJSON));
+
+// 4.2 Nearby search exploration (must come before /:id)
+router.get('/nearby', catchAsync(propertyController.nearby));
+
 // 5. Show property details (public)
 router.get('/:id', catchAsync(propertyController.show));
 
@@ -62,5 +68,9 @@ router.delete(
 // 9. Nested Reviews routes
 const reviewRoutes = require('./reviewRoutes');
 router.use('/:id/reviews', reviewRoutes);
+
+// 10. Reserve dates / Create booking for this property
+const bookingController = require('../controllers/bookingController');
+router.post('/:id/bookings', requireAuth, catchAsync(bookingController.createBooking));
 
 module.exports = router;

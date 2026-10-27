@@ -3,8 +3,8 @@
 <div class="property-detail-wrapper">
   <!-- Top Bar -->
   <div class="property-topbar">
-    <a href="/properties" class="back-link">
-      <i class="fa-solid fa-arrow-left"></i> All Stays
+    <a href="/properties" class="back-link" id="propertyBackLink">
+      <i class="fa-solid fa-arrow-left"></i> <span id="propertyBackLinkText">All Stays</span>
     </a>
     
     <div class="property-actions">
@@ -38,25 +38,46 @@
     </div>
   </div>
 
-  <!-- Image Showcase -->
-  <div class="property-gallery">
-    <div class="gallery-main">
+  <!-- Image Showcase (Full & Clear within Boundaries) -->
+  <% const mainImageUrl = (property.images && property.images[0] && property.images[0].url) ? property.images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=80'; %>
+  <div class="property-gallery <%= (!property.images || property.images.length <= 1) ? 'single-image' : '' %>" id="propertyGallery">
+    <div class="gallery-main" id="galleryMainSlot" title="Click to view full photo">
+      <% if (!property.images || property.images.length <= 1) { %>
+        <div class="gallery-ambient-bg" id="galleryAmbientBg" style="background-image: url('<%= mainImageUrl %>');"></div>
+      <% } %>
       <img 
-        src="<%= (property.images && property.images[0] && property.images[0].url) ? property.images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=80' %>" 
+        src="<%= mainImageUrl %>" 
         alt="<%= property.title %>"
         class="img-featured"
+        id="featuredMainImg"
         onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=1400&q=80';"
       >
+      <button type="button" class="btn-gallery-fullscreen" id="btnOpenLightbox" title="Expand to full screen">
+        <i class="fa-solid fa-expand"></i> <span>Full View</span>
+      </button>
     </div>
     <% if (property.images && property.images.length > 1) { %>
       <div class="gallery-thumbnails">
         <% property.images.slice(1, 5).forEach((img, i) => { %>
-          <div class="thumb-wrap">
+          <div class="thumb-wrap" data-img-url="<%= img.url %>" title="Click to view this photo">
             <img src="<%= img.url %>" alt="Photo <%= i + 2 %>" class="img-thumb" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=600&q=80';">
           </div>
         <% }) %>
       </div>
     <% } %>
+  </div>
+
+  <!-- Fullscreen Photo Lightbox Modal -->
+  <div class="photo-lightbox-modal" id="photoLightboxModal">
+    <div class="lightbox-content">
+      <button type="button" class="lightbox-close-btn" id="btnCloseLightbox" title="Close (Esc)">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <img src="<%= mainImageUrl %>" alt="<%= property.title %>" class="lightbox-img" id="lightboxModalImg">
+      <div class="lightbox-caption">
+        <%= property.title %> • <%= property.city %>, <%= property.country %>
+      </div>
+    </div>
   </div>
 
   <!-- Main Details Content -->
@@ -74,15 +95,11 @@
         </div>
       </div>
 
-      <hr class="section-divider">
-
       <!-- Description -->
       <div class="property-section">
         <h2>About this space</h2>
         <p class="property-description"><%= property.description %></p>
       </div>
-
-      <hr class="section-divider">
 
       <!-- Amenities -->
       <div class="property-section">
@@ -100,8 +117,6 @@
           <p class="text-muted">Standard vacation amenities provided.</p>
         <% } %>
       </div>
-
-      <hr class="section-divider">
 
       <!-- Location Map Section -->
       <div class="property-section">
@@ -121,9 +136,131 @@
             <i class="fa-solid fa-spinner fa-spin"></i>
             <p>Loading interactive MapLibre map...</p>
           </div>
+        </div>
       </div>
 
-      <hr class="section-divider">
+      <!-- Server-side booking configuration container -->
+      <script type="application/json" id="bookingServerConfig">
+        <%- JSON.stringify({ bookedRanges: typeof bookedRanges !== 'undefined' ? bookedRanges : [], pricePerNight: property.pricePerNight }) %>
+      </script>
+
+      <!-- Availability Calendar Section (Booked vs Available Dates) -->
+      <div class="property-section calendar-section" id="availabilitySection">
+        <div class="calendar-header-bar">
+          <div>
+            <h2>Availability & Booked Dates</h2>
+            <p class="text-muted">See available and reserved dates at a glance. Select any available date to start your reservation.</p>
+          </div>
+          <div class="calendar-legend">
+            <span class="legend-item"><span class="legend-dot dot-available"></span> Available</span>
+            <span class="legend-item"><span class="legend-dot dot-booked"></span> Reserved</span>
+            <span class="legend-item"><span class="legend-dot dot-past"></span> Past</span>
+          </div>
+        </div>
+
+        <div class="availability-calendar-wrap" id="availabilityCalendarWrap">
+          <!-- Calendar months dynamically rendered by JavaScript -->
+        </div>
+      </div>
+
+      <script>
+        // Interactive Availability Calendar Generator (2 months visible)
+        (function renderAvailabilityCalendar() {
+          const calWrap = document.getElementById('availabilityCalendarWrap');
+          if (!calWrap) return;
+
+          let bookedRanges = [];
+          try {
+            const configEl = document.getElementById('bookingServerConfig');
+            if (configEl) {
+              const cfg = JSON.parse(configEl.textContent || '{}');
+              bookedRanges = cfg.bookedRanges || [];
+            }
+          } catch(e) {
+            console.warn('[Calendar] Config error:', e);
+          }
+
+          const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+          const dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+
+          // Render current month and next month (2 full months)
+          let html = '';
+          for (let m = 0; m < 2; m++) {
+            const targetMonth = new Date(today.getFullYear(), today.getMonth() + m, 1);
+            const year = targetMonth.getFullYear();
+            const month = targetMonth.getMonth();
+            const firstDayIndex = targetMonth.getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            html += `
+              <div class="calendar-month-card">
+                <div class="calendar-month-title">${monthNames[month]} ${year}</div>
+                <div class="calendar-days-header">
+                  ${dayNames.map(d => `<span class="day-col-header">${d}</span>`).join('')}
+                </div>
+                <div class="calendar-days-grid">
+            `;
+
+            // Leading empty cells
+            for (let e = 0; e < firstDayIndex; e++) {
+              html += `<span class="calendar-cell cell-empty"></span>`;
+            }
+
+            // Days
+            for (let d = 1; d <= daysInMonth; d++) {
+              const dateObj = new Date(year, month, d);
+              dateObj.setHours(0, 0, 0, 0);
+              const dateIso = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+              const isPast = dateObj < today;
+              const isToday = dateObj.getTime() === today.getTime();
+
+              // Check if booked
+              let isBooked = false;
+              for (const range of bookedRanges) {
+                const rStart = new Date(range.checkIn);
+                rStart.setHours(0, 0, 0, 0);
+                const rEnd = new Date(range.checkOut);
+                rEnd.setHours(0, 0, 0, 0);
+
+                if (dateObj >= rStart && dateObj < rEnd) {
+                  isBooked = true;
+                  break;
+                }
+              }
+
+              let cellClass = 'cell-available';
+              let title = 'Click to select';
+
+              if (isPast) {
+                cellClass = 'cell-past';
+                title = 'Past date';
+              } else if (isBooked) {
+                cellClass = 'cell-booked';
+                title = 'Reserved / Unavailable';
+              } else if (isToday) {
+                cellClass = 'cell-available cell-today';
+              }
+
+              if (!isPast && !isBooked) {
+                html += `<button type="button" class="calendar-cell ${cellClass}" title="${title}" onclick="if(window.selectCalendarDates){window.selectCalendarDates('${dateIso}')}">${d}</button>`;
+              } else {
+                html += `<span class="calendar-cell ${cellClass}" title="${title}">${d}</span>`;
+              }
+            }
+
+            html += `
+                </div>
+              </div>
+            `;
+          }
+
+          calWrap.innerHTML = html;
+        })();
+      </script>
 
       <!-- Guest Reviews & Ratings Section -->
       <div class="property-section reviews-section">
@@ -137,46 +274,75 @@
           </div>
         </div>
 
-        <!-- Add Review Form -->
+        <!-- Add Review Form (Only for verified travelers with completed stays) -->
         <% if (typeof currentUser !== 'undefined' && currentUser) { %>
-          <div class="add-review-card">
-            <h3>Leave a Review</h3>
-            <p class="text-muted">Share your experience to help future guests plan their stay.</p>
-            <form action="/properties/<%= property._id %>/reviews" method="POST" class="review-form">
-              <div class="form-group">
-                <label class="form-label">Your Rating</label>
-                <div class="star-rating-selector">
-                  <input type="radio" id="star5" name="rating" value="5" checked /><label for="star5" title="5 stars"><i class="fa-solid fa-star"></i></label>
-                  <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4 stars"><i class="fa-solid fa-star"></i></label>
-                  <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3 stars"><i class="fa-solid fa-star"></i></label>
-                  <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 stars"><i class="fa-solid fa-star"></i></label>
-                  <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 star"><i class="fa-solid fa-star"></i></label>
+          <% if (typeof userReview !== 'undefined' && userReview) { %>
+            <div class="reviewed-status-box">
+              <i class="fa-solid fa-circle-check text-success"></i>
+              <div>
+                <strong>You reviewed this stay</strong>
+                <p>Thank you for sharing your experience! You rated this stay <%= userReview.rating %> out of 5 stars.</p>
+              </div>
+            </div>
+          <% } else if (typeof reviewEligibility !== 'undefined' && reviewEligibility.canReview) { %>
+            <div class="add-review-card" id="review-form">
+              <div class="verified-stay-badge">
+                <i class="fa-solid fa-shield-check"></i> Verified Completed Stay
+              </div>
+              <h3>Leave a Review</h3>
+              <p class="text-muted">How was your stay? Share your thoughts to help future travelers.</p>
+              <form action="/properties/<%= property._id %>/reviews" method="POST" class="review-form">
+                <div class="form-group">
+                  <label class="form-label">Your Rating</label>
+                  <div class="star-rating-selector">
+                    <input type="radio" id="star5" name="rating" value="5" checked /><label for="star5" title="5 stars"><i class="fa-solid fa-star"></i></label>
+                    <input type="radio" id="star4" name="rating" value="4" /><label for="star4" title="4 stars"><i class="fa-solid fa-star"></i></label>
+                    <input type="radio" id="star3" name="rating" value="3" /><label for="star3" title="3 stars"><i class="fa-solid fa-star"></i></label>
+                    <input type="radio" id="star2" name="rating" value="2" /><label for="star2" title="2 stars"><i class="fa-solid fa-star"></i></label>
+                    <input type="radio" id="star1" name="rating" value="1" /><label for="star1" title="1 star"><i class="fa-solid fa-star"></i></label>
+                  </div>
                 </div>
-              </div>
 
-              <div class="form-group">
-                <label for="comment" class="form-label">Review Comment</label>
-                <textarea 
-                  name="comment" 
-                  id="comment" 
-                  rows="3" 
-                  class="form-control-plain" 
-                  placeholder="How was your stay? Tell other travelers about the location, amenities, and host..."
-                  required
-                ></textarea>
-              </div>
+                <div class="form-group">
+                  <label for="comment" class="form-label">Review Comment</label>
+                  <textarea 
+                    name="comment" 
+                    id="comment" 
+                    rows="3" 
+                    class="form-control-plain" 
+                    placeholder="Tell other travelers about the location, amenities, host hospitality, and your overall experience..."
+                    required
+                  ></textarea>
+                </div>
 
-              <button type="submit" class="btn btn-primary">
-                <i class="fa-solid fa-paper-plane"></i> Submit Review
-              </button>
-            </form>
-          </div>
+                <button type="submit" class="btn btn-primary">
+                  <i class="fa-solid fa-paper-plane"></i> Submit Review
+                </button>
+              </form>
+            </div>
+          <% } else if (typeof reviewEligibility !== 'undefined' && reviewEligibility.reason === 'stay_not_ended') { %>
+            <div class="review-restriction-banner pending-stay">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <div>
+                <strong>Stay in progress or scheduled</strong>
+                <p><%= reviewEligibility.message %></p>
+              </div>
+            </div>
+          <% } else { %>
+            <div class="review-restriction-banner verified-only">
+              <i class="fa-solid fa-shield-halved"></i>
+              <div>
+                <strong>Verified Guests Only</strong>
+                <p>To protect community trust, reviews can only be submitted by travelers who have completed a booked stay at this property.</p>
+              </div>
+            </div>
+          <% } %>
         <% } else { %>
           <div class="login-to-review-banner">
             <i class="fa-solid fa-comment-dots"></i>
             <div>
               <strong>Have you stayed here?</strong>
-              <p>Please <a href="/auth/login" class="text-primary font-weight-bold">sign in</a> to submit a review and rating.</p>
+              <p>Please <a href="/auth/login" class="text-primary font-weight-bold">sign in</a> to view booking options and verified reviews.</p>
             </div>
           </div>
         <% } %>
@@ -221,13 +387,13 @@
         <% } else { %>
           <div class="no-reviews-box">
             <i class="fa-regular fa-comment-dots"></i>
-            <p>No written reviews yet. Be the first guest to review this stay!</p>
+            <p>No written reviews yet. Be the first guest to review this stay after your trip!</p>
           </div>
         <% } %>
       </div>
     </div>
 
-    <!-- Right Column: Booking Widget Preview (Prepared for Module 4) -->
+    <!-- Right Column: Interactive Booking Widget -->
     <aside class="property-sidebar">
       <div class="booking-widget-card">
         <div class="widget-price-header">
@@ -241,27 +407,653 @@
           </div>
         </div>
 
-        <div class="booking-preview-box">
-          <div class="date-picker-placeholder">
-            <div class="picker-col">
-              <label>CHECK-IN</label>
-              <span>Select Date</span>
-            </div>
-            <div class="picker-col">
-              <label>CHECKOUT</label>
-              <span>Select Date</span>
-            </div>
+        <% 
+          const isHostOfProperty = (typeof currentUser !== 'undefined' && currentUser && property.host && (
+            (property.host._id && property.host._id.toString() === currentUser._id.toString()) ||
+            property.host.toString() === currentUser._id.toString()
+          ));
+        %>
+
+        <% if (isHostOfProperty) { %>
+          <div class="host-notice-box">
+            <i class="fa-solid fa-circle-info"></i>
+            <p>You are the host of this listing. You can manage or edit details from your <a href="/dashboard/host" class="text-primary font-weight-bold">Host Dashboard</a>.</p>
           </div>
+        <% } else { %>
+          <form action="/properties/<%= property._id %>/bookings" method="POST" class="booking-form" id="bookingForm">
+            
+            <!-- Booked Dates Availability Banner -->
+            <% if (typeof bookedRanges !== 'undefined' && bookedRanges && bookedRanges.length > 0) { %>
+              <div class="booked-dates-banner">
+                <div class="booked-dates-label">
+                  <i class="fa-solid fa-calendar-xmark text-danger"></i> Currently Booked Dates:
+                </div>
+                <div class="booked-dates-pills">
+                  <% bookedRanges.forEach(b => { %>
+                    <span class="booked-pill" title="Unavailable">
+                      <i class="fa-solid fa-lock"></i> <%= b.checkInFormatted %> &ndash; <%= b.checkOutFormatted %>
+                    </span>
+                  <% }) %>
+                </div>
+              </div>
+            <% } else { %>
+              <div class="dates-all-open-banner">
+                <i class="fa-solid fa-circle-check text-success"></i> All upcoming dates are open for booking!
+              </div>
+            <% } %>
 
-          <a href="/properties" class="btn btn-primary btn-block btn-lg">
-            <i class="fa-solid fa-calendar-check"></i> Reserve Dates
-          </a>
+            <div class="date-picker-grid" id="datePickerGrid">
+              <div class="date-input-wrap">
+                <label for="checkIn">CHECK-IN</label>
+                <input 
+                  type="date" 
+                  id="checkIn" 
+                  name="checkIn" 
+                  required 
+                  class="date-input"
+                />
+              </div>
+              <div class="date-input-wrap">
+                <label for="checkOut">CHECKOUT</label>
+                <input 
+                  type="date" 
+                  id="checkOut" 
+                  name="checkOut" 
+                  required 
+                  class="date-input"
+                />
+              </div>
+            </div>
 
-          <p class="booking-guarantee">
-            <i class="fa-solid fa-shield-halved"></i> Concurrency-Safe Instant Confirmation
-          </p>
-        </div>
+            <!-- Overlap Warning Message -->
+            <div class="overlap-alert-box" id="overlapWarning" style="display: none;">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span id="overlapText">Selected dates overlap with an existing booking. Please pick open dates.</span>
+            </div>
+
+            <div class="form-group" style="margin-top: 0.85rem;">
+              <label for="guests" class="form-label" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">GUESTS</label>
+              <select name="guests" id="guests" class="form-control-plain">
+                <option value="1">1 Guest</option>
+                <option value="2">2 Guests</option>
+                <option value="3">3 Guests</option>
+                <option value="4">4 Guests</option>
+                <option value="5">5+ Guests</option>
+              </select>
+            </div>
+
+            <!-- Price Breakdown Calculation -->
+            <div class="booking-cost-breakdown" id="costBreakdown" style="display: none;">
+              <div class="cost-line">
+                <span id="priceNightsCalc">&#8377;<%= property.pricePerNight.toLocaleString('en-IN') %> &times; 1 night</span>
+                <span id="subtotalPrice">&#8377;<%= property.pricePerNight.toLocaleString('en-IN') %></span>
+              </div>
+              <div class="cost-line">
+                <span><i class="fa-solid fa-receipt" style="margin-right:4px;color:var(--text-muted)"></i> GST (12%)</span>
+                <span id="gstAmount">&#8377;0</span>
+              </div>
+              <div class="cost-line">
+                <span><i class="fa-solid fa-concierge-bell" style="margin-right:4px;color:var(--text-muted)"></i> StayVerse Service Fee (5%)</span>
+                <span id="serviceFeeAmount">&#8377;0</span>
+              </div>
+              <hr style="border:none;border-top:1px dashed rgba(255,255,255,0.12);margin:0.5rem 0;">
+              <div class="cost-line total-line">
+                <span>Total (incl. taxes)</span>
+                <span class="total-bold" id="totalCalcPrice">&#8377;<%= property.pricePerNight.toLocaleString('en-IN') %></span>
+              </div>
+            </div>
+
+            <% if (typeof currentUser !== 'undefined' && currentUser) { %>
+              <input type="hidden" name="paymentTransactionId" id="paymentTransactionId" value="" />
+              <input type="hidden" name="paymentMethod" value="stripe" />
+              <input type="hidden" name="totalAmount" id="totalAmountInput" value="0" />
+              <button type="button" class="btn btn-primary btn-block btn-lg" id="btnReserve" style="margin-top: 1rem;">
+                <i class="fa-brands fa-stripe"></i> Reserve with Stripe
+              </button>
+            <% } else { %>
+              <a href="/auth/login" class="btn btn-primary btn-block btn-lg" style="margin-top: 1rem;">
+                <i class="fa-solid fa-right-to-bracket"></i> Sign In to Reserve
+              </a>
+            <% } %>
+
+            <p class="booking-guarantee">
+              <i class="fa-solid fa-shield-halved"></i> Concurrency-Safe Instant Confirmation
+            </p>
+          </form>
+
+          <!-- Server-side booking configuration in application/json container (prevents linter errors) -->
+          <script type="application/json" id="bookingServerConfig">
+            <%- JSON.stringify({ bookedRanges: typeof bookedRanges !== 'undefined' ? bookedRanges : [], pricePerNight: property.pricePerNight }) %>
+          </script>
+
+          <script>
+            // Date Picker & Real-Time Collision Logic
+            (function() {
+              const bookingServerConfig = JSON.parse(document.getElementById('bookingServerConfig')?.textContent || '{}');
+              const bookedRanges = bookingServerConfig.bookedRanges || [];
+              const pricePerNight = Number(bookingServerConfig.pricePerNight || 0);
+              const checkIn = document.getElementById('checkIn');
+              const checkOut = document.getElementById('checkOut');
+              const breakdown = document.getElementById('costBreakdown');
+              const priceNightsCalc = document.getElementById('priceNightsCalc');
+              const subtotalPrice = document.getElementById('subtotalPrice');
+              const totalCalcPrice = document.getElementById('totalCalcPrice');
+              const overlapWarning = document.getElementById('overlapWarning');
+              const overlapText = document.getElementById('overlapText');
+              const btnReserve = document.getElementById('btnReserve');
+              const dateGrid = document.getElementById('datePickerGrid');
+
+              const today = new Date().toISOString().split('T')[0];
+              if (checkIn) checkIn.min = today;
+
+              const tomorrow = new Date();
+              tomorrow.setDate(tomorrow.getDate() + 1);
+              if (checkOut) checkOut.min = tomorrow.toISOString().split('T')[0];
+
+              // Check if selected range collides with any booked range
+              function checkOverlap(startDateStr, endDateStr) {
+                const start = new Date(startDateStr);
+                const end = new Date(endDateStr);
+
+                for (const range of bookedRanges) {
+                  const bStart = new Date(range.checkIn);
+                  const bEnd = new Date(range.checkOut);
+
+                  if (start < bEnd && end > bStart) {
+                    return range;
+                  }
+                }
+                return null;
+              }
+
+              function updateCalculation() {
+                if (!checkIn.value || !checkOut.value) {
+                  breakdown.style.display = 'none';
+                  overlapWarning.style.display = 'none';
+                  if (btnReserve) btnReserve.disabled = false;
+                  dateGrid.classList.remove('has-overlap');
+                  return;
+                }
+
+                const start = new Date(checkIn.value);
+                const end = new Date(checkOut.value);
+                const diffTime = end - start;
+                const nights = Math.round(diffTime / (1000 * 60 * 60 * 24));
+
+                // Check collision
+                const collided = checkOverlap(checkIn.value, checkOut.value);
+
+                if (collided) {
+                  overlapWarning.style.display = 'flex';
+                  overlapText.innerText = `Selected dates overlap with an existing booking (${collided.checkInFormatted} – ${collided.checkOutFormatted}). Please choose different dates.`;
+                  dateGrid.classList.add('has-overlap');
+                  breakdown.style.display = 'none';
+                  if (btnReserve) {
+                    btnReserve.disabled = true;
+                    btnReserve.innerHTML = '<i class="fa-solid fa-ban"></i> Dates Unavailable';
+                  }
+                  return;
+                }
+
+                // If no collision
+                overlapWarning.style.display = 'none';
+                dateGrid.classList.remove('has-overlap');
+                if (btnReserve) {
+                  btnReserve.disabled = false;
+                  btnReserve.innerHTML = '<i class="fa-brands fa-stripe"></i> Reserve with Stripe';
+                }
+
+                if (nights > 0) {
+                  const subtotal = nights * pricePerNight;
+                  const gst = Math.round(subtotal * 0.12);
+                  const serviceFee = Math.round(subtotal * 0.05);
+                  const grandTotal = subtotal + gst + serviceFee;
+
+                  priceNightsCalc.innerHTML = `&#8377;${pricePerNight.toLocaleString('en-IN')} &times; ${nights} ${nights === 1 ? 'night' : 'nights'}`;
+                  subtotalPrice.innerHTML = `&#8377;${subtotal.toLocaleString('en-IN')}`;
+
+                  const gstEl = document.getElementById('gstAmount');
+                  const feeEl = document.getElementById('serviceFeeAmount');
+                  if (gstEl) gstEl.innerHTML = `&#8377;${gst.toLocaleString('en-IN')}`;
+                  if (feeEl) feeEl.innerHTML = `&#8377;${serviceFee.toLocaleString('en-IN')}`;
+
+                  totalCalcPrice.innerHTML = `&#8377;${grandTotal.toLocaleString('en-IN')}`;
+                  breakdown.style.display = 'block';
+
+                  const totalInput = document.getElementById('totalAmountInput');
+                  if (totalInput) totalInput.value = grandTotal;
+                } else {
+                  breakdown.style.display = 'none';
+                }
+              }
+
+              if (checkIn && checkOut) {
+                checkIn.addEventListener('change', () => {
+                  if (checkIn.value) {
+                    const nextDay = new Date(checkIn.value);
+                    nextDay.setDate(nextDay.getDate() + 1);
+                    checkOut.min = nextDay.toISOString().split('T')[0];
+                    if (checkOut.value && new Date(checkOut.value) <= new Date(checkIn.value)) {
+                      checkOut.value = nextDay.toISOString().split('T')[0];
+                    }
+                  }
+                  updateCalculation();
+                });
+                checkOut.addEventListener('change', updateCalculation);
+              }
+
+              // Expose for calendar click integration
+              window.selectCalendarDates = function(dateStr) {
+                if (!checkIn.value || (checkIn.value && checkOut.value)) {
+                  checkIn.value = dateStr;
+                  const nextDay = new Date(dateStr);
+                  nextDay.setDate(nextDay.getDate() + 1);
+                  checkOut.min = nextDay.toISOString().split('T')[0];
+                  checkOut.value = '';
+                } else if (checkIn.value && !checkOut.value) {
+                  if (new Date(dateStr) > new Date(checkIn.value)) {
+                    checkOut.value = dateStr;
+                  } else {
+                    checkIn.value = dateStr;
+                  }
+                }
+                updateCalculation();
+                // Smooth scroll to booking widget
+                dateGrid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              };
+
+              // Expose for external modal trigger
+              window.checkOverlap = checkOverlap;
+              window.propertyPricePerNight = pricePerNight;
+            })();
+          </script>
+        <% } %>
       </div>
     </aside>
   </div>
+
+  <!-- Smart Proximity & Quality Recommendations (Phase 6) -->
+  <% if (typeof recommendations !== 'undefined' && recommendations && recommendations.length > 0) { %>
+    <hr class="section-divider" style="margin: 4rem 0 2.5rem;">
+    <div class="recommendations-section">
+      <div class="recommendations-header">
+        <div>
+          <span class="auth-badge"><i class="fa-solid fa-sparkles"></i> Curated For You</span>
+          <h2 class="recommendations-title">Similar Stays You Might Love</h2>
+          <p class="text-muted">Handpicked nearby getaways matching this stay's ambiance, price tier, and guest ratings.</p>
+        </div>
+      </div>
+
+      <div class="property-grid" style="margin-top: 1.5rem;">
+        <% recommendations.forEach(rec => { %>
+          <div class="property-card">
+            <a href="/properties/<%= rec._id %>" class="property-card-link">
+              <div class="property-img-wrapper">
+                <img 
+                  src="<%= (rec.images && rec.images[0] && rec.images[0].url) ? rec.images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80' %>" 
+                  alt="<%= rec.title %>"
+                  class="property-img"
+                  loading="lazy"
+                  onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80';"
+                >
+                <div class="property-rating-badge">
+                  <i class="fa-solid fa-star"></i>
+                  <span><%= rec.averageRating > 0 ? rec.averageRating.toFixed(1) : 'New' %></span>
+                </div>
+              </div>
+
+              <div class="property-card-body">
+                <div class="property-card-location">
+                  <i class="fa-solid fa-location-dot"></i> <%= rec.city %>, <%= rec.country %>
+                </div>
+                <h3 class="property-card-title"><%= rec.title %></h3>
+                
+                <div class="property-card-footer">
+                  <div class="property-price">
+                    <span class="price-val">&#8377;<%= rec.pricePerNight.toLocaleString('en-IN') %></span>
+                    <span class="price-unit">/ <%= rec.priceUnit || 'night' %></span>
+                  </div>
+                  <span class="btn-card-view">Explore &rarr;</span>
+                </div>
+              </div>
+            </a>
+          </div>
+        <% }) %>
+      </div>
+    </div>
+  <% } %>
+  <!-- Stripe Payment Simulation Modal -->
+  <div class="stripe-modal-overlay" id="stripeModalOverlay" style="display: none;">
+    <div class="stripe-modal-card" id="stripeModalCard">
+      <!-- Header -->
+      <div class="stripe-modal-header">
+        <div class="stripe-brand-wrap">
+          <span class="stripe-logo-text"><i class="fa-brands fa-stripe"></i></span>
+          <span class="stripe-badge-test"><i class="fa-solid fa-flask"></i> TEST MODE</span>
+        </div>
+        <button type="button" class="stripe-modal-close" id="btnCloseStripeModal" aria-label="Close modal" title="Close">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Payment Body -->
+      <div class="stripe-modal-body" id="stripeModalBody">
+        <!-- Summary Box -->
+        <div class="stripe-order-summary">
+          <div class="stripe-summary-media">
+            <img src="<%= (property.images && property.images[0] && property.images[0].url) ? property.images[0].url : mainImageUrl %>" alt="<%= property.title %>" class="stripe-summary-thumb">
+          </div>
+          <div class="stripe-summary-info">
+            <h4 class="stripe-summary-title"><%= property.title %></h4>
+            <p class="stripe-summary-dates" id="stripeModalDates">Dates selected</p>
+            <div class="stripe-summary-amount" id="stripeModalAmount">&#8377;0</div>
+          </div>
+        </div>
+
+        <!-- Payment Form Details -->
+        <div class="stripe-form-section">
+          <div class="stripe-section-title">
+            <span>Payment method</span>
+            <span class="stripe-secure-tag"><i class="fa-solid fa-shield-halved"></i> 256-bit SSL</span>
+          </div>
+
+          <div class="stripe-card-element-box">
+            <div class="stripe-input-row card-number-row">
+              <label class="stripe-label">CARD NUMBER</label>
+              <div class="stripe-card-input-wrap">
+                <input type="text" class="stripe-field" id="stripeCardNum" value="4242 •••• •••• 4242" readonly>
+                <div class="stripe-card-brands">
+                  <i class="fa-brands fa-cc-visa text-primary"></i>
+                  <i class="fa-brands fa-cc-mastercard text-warning"></i>
+                </div>
+              </div>
+            </div>
+
+            <div class="stripe-split-row">
+              <div class="stripe-input-row">
+                <label class="stripe-label">EXPIRES</label>
+                <input type="text" class="stripe-field" value="12 / 28" readonly>
+              </div>
+              <div class="stripe-input-row">
+                <label class="stripe-label">CVC</label>
+                <input type="text" class="stripe-field" value="123" readonly>
+              </div>
+            </div>
+
+            <div class="stripe-input-row">
+              <label class="stripe-label">CARDHOLDER NAME</label>
+              <input type="text" class="stripe-field" id="stripeCardName" value="<%= (typeof currentUser !== 'undefined' && currentUser && currentUser.name) ? currentUser.name : 'Verified Traveler' %>">
+            </div>
+
+            <div class="stripe-input-row">
+              <label class="stripe-label">COUNTRY OR REGION</label>
+              <select class="stripe-field-select">
+                <option selected>India</option>
+                <option>United States</option>
+                <option>United Kingdom</option>
+                <option>Singapore</option>
+                <option>United Arab Emirates</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Simulated notice -->
+          <div class="stripe-sandbox-notice">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>This is an interactive Stripe Sandbox simulation. No real money will be charged.</span>
+          </div>
+
+          <!-- Pay & Cancel Buttons -->
+          <div class="stripe-btn-actions">
+            <button type="button" class="btn-stripe-pay" id="btnStripeConfirmPay">
+              <span id="btnStripePayContent">
+                <i class="fa-solid fa-lock"></i> Authorize &amp; Pay <span id="stripePayBtnAmount">&#8377;0</span>
+              </span>
+            </button>
+            <button type="button" class="btn-stripe-cancel" id="btnCancelStripeModal">
+              <i class="fa-solid fa-arrow-left"></i> Cancel &amp; Edit Dates
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Processing / Success Screen -->
+      <div class="stripe-modal-success" id="stripeModalSuccess" style="display: none;">
+        <div class="stripe-success-icon-wrap">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <h3>Payment Authorized!</h3>
+        <p class="stripe-tx-id" id="stripeTxIdDisplay">Transaction ID: pi_stripe_...</p>
+        <div class="stripe-success-status">
+          <i class="fa-solid fa-spinner fa-spin"></i> Finalizing reservation with concurrency lock...
+        </div>
+      </div>
+
+      <div class="stripe-modal-footer">
+        <span>Powered by <strong>stripe</strong></span>
+        <span><i class="fa-solid fa-shield-halved text-success"></i> 256-bit SSL • PCI Compliant</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Stripe Payment Modal Logic
+    (function initStripeSimulation() {
+      const btnReserve = document.getElementById('btnReserve');
+      const checkIn = document.getElementById('checkIn');
+      const checkOut = document.getElementById('checkOut');
+      const overlay = document.getElementById('stripeModalOverlay');
+      const btnClose = document.getElementById('btnCloseStripeModal');
+      const btnCancel = document.getElementById('btnCancelStripeModal');
+      const btnConfirmPay = document.getElementById('btnStripeConfirmPay');
+      const bookingForm = document.getElementById('bookingForm');
+
+      const closeModal = () => {
+        if (overlay) overlay.style.display = 'none';
+        document.body.style.overflow = '';
+      };
+
+      const openModal = () => {
+        if (overlay) overlay.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      };
+
+      if (btnClose) btnClose.addEventListener('click', closeModal);
+      if (btnCancel) btnCancel.addEventListener('click', closeModal);
+
+      if (overlay) {
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) closeModal();
+        });
+      }
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && overlay && overlay.style.display === 'flex') {
+          closeModal();
+        }
+      });
+
+      if (btnReserve) {
+        btnReserve.addEventListener('click', (e) => {
+          e.preventDefault();
+          if (!checkIn || !checkOut || !checkIn.value || !checkOut.value) {
+            alert('Please select both Check-in and Checkout dates first.');
+            if (checkIn) checkIn.focus();
+            return;
+          }
+
+          if (typeof window.checkOverlap === 'function') {
+            const collided = window.checkOverlap(checkIn.value, checkOut.value);
+            if (collided) {
+              alert('Selected dates overlap with an existing reservation. Please pick open dates.');
+              return;
+            }
+          }
+
+          const pricePerNight = window.propertyPricePerNight || Number('<%= property.pricePerNight %>') || 0;
+          const start = new Date(checkIn.value);
+          const end = new Date(checkOut.value);
+          const nights = Math.max(1, Math.round((end - start) / (1000 * 60 * 60 * 24)));
+          const subtotal = nights * pricePerNight;
+          const gst = Math.round(subtotal * 0.12);
+          const serviceFee = Math.round(subtotal * 0.05);
+          const grandTotal = subtotal + gst + serviceFee;
+
+          const formattedIn = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          const formattedOut = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          const guestsCount = document.getElementById('guests')?.value || '1';
+
+          const datesEl = document.getElementById('stripeModalDates');
+          if (datesEl) {
+            datesEl.textContent = `${formattedIn} → ${formattedOut} (${nights} ${nights === 1 ? 'night' : 'nights'} • ${guestsCount} ${guestsCount === '1' ? 'guest' : 'guests'})`;
+          }
+
+          const amountEl = document.getElementById('stripeModalAmount');
+          if (amountEl) {
+            amountEl.innerHTML = `<div style="font-size:0.78rem;color:#aaa;margin-bottom:2px;">&#8377;${subtotal.toLocaleString('en-IN')} + &#8377;${gst.toLocaleString('en-IN')} GST + &#8377;${serviceFee.toLocaleString('en-IN')} Fee</div><div style="font-size:1.25rem;font-weight:700;">&#8377;${grandTotal.toLocaleString('en-IN')}</div>`;
+          }
+
+          const btnAmountEl = document.getElementById('stripePayBtnAmount');
+          if (btnAmountEl) btnAmountEl.innerHTML = `&#8377;${grandTotal.toLocaleString('en-IN')}`;
+
+          // Reset modal state
+          const bodyEl = document.getElementById('stripeModalBody');
+          const successEl = document.getElementById('stripeModalSuccess');
+          if (bodyEl) bodyEl.style.display = 'block';
+          if (successEl) successEl.style.display = 'none';
+
+          if (btnConfirmPay) {
+            btnConfirmPay.disabled = false;
+            btnConfirmPay.innerHTML = `<i class="fa-solid fa-lock"></i> Authorize &amp; Pay &#8377;${grandTotal.toLocaleString('en-IN')}`;
+          }
+
+          openModal();
+        });
+      }
+
+      if (btnConfirmPay) {
+        btnConfirmPay.addEventListener('click', (e) => {
+          e.preventDefault();
+          btnConfirmPay.disabled = true;
+          btnConfirmPay.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Authorizing with Stripe...';
+
+          setTimeout(() => {
+            const txId = 'pi_3' + Math.random().toString(36).substring(2, 9) + Math.random().toString(36).substring(2, 9);
+            const txInput = document.getElementById('paymentTransactionId');
+            if (txInput) txInput.value = txId;
+
+            const bodyEl = document.getElementById('stripeModalBody');
+            const successEl = document.getElementById('stripeModalSuccess');
+            const txDisplay = document.getElementById('stripeTxIdDisplay');
+
+            if (bodyEl) bodyEl.style.display = 'none';
+            if (successEl) successEl.style.display = 'block';
+            if (txDisplay) txDisplay.textContent = 'Stripe Charge ID: ' + txId;
+
+            // Automatically submit booking form after brief confirmation
+            setTimeout(() => {
+              if (bookingForm) bookingForm.submit();
+            }, 1000);
+          }, 1200);
+        });
+      }
+    })();
+  </script>
 </div>
+
+<script>
+  // Restore user's active search/GPS filters when returning to explorer
+  document.addEventListener('DOMContentLoaded', () => {
+    const backLink = document.getElementById('propertyBackLink');
+    const backText = document.getElementById('propertyBackLinkText');
+    const savedFilterUrl = sessionStorage.getItem('stayverse_filter_url');
+
+    if (savedFilterUrl && backLink) {
+      backLink.href = savedFilterUrl;
+      if (backText) backText.textContent = 'Back to Filtered Results';
+    } else if (document.referrer && document.referrer.includes('/properties')) {
+      if (backLink) {
+        backLink.addEventListener('click', (e) => {
+          e.preventDefault();
+          history.back();
+        });
+      }
+    }
+
+    // Photo Lightbox & Gallery Interactions
+    const lightboxModal = document.getElementById('photoLightboxModal');
+    const lightboxImg = document.getElementById('lightboxModalImg');
+    const btnCloseLightbox = document.getElementById('btnCloseLightbox');
+    const btnOpenLightbox = document.getElementById('btnOpenLightbox');
+    const featuredMainImg = document.getElementById('featuredMainImg');
+    const galleryAmbientBg = document.getElementById('galleryAmbientBg');
+    const galleryMainSlot = document.getElementById('galleryMainSlot');
+    const thumbWraps = document.querySelectorAll('.thumb-wrap');
+
+    const openLightbox = (url) => {
+      if (lightboxModal && lightboxImg) {
+        lightboxImg.src = url || (featuredMainImg ? featuredMainImg.src : '');
+        lightboxModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+      }
+    };
+
+    const closeLightbox = () => {
+      if (lightboxModal) {
+        lightboxModal.classList.remove('active');
+        document.body.style.overflow = '';
+      }
+    };
+
+    if (btnOpenLightbox) {
+      btnOpenLightbox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openLightbox();
+      });
+    }
+
+    if (galleryMainSlot) {
+      galleryMainSlot.addEventListener('click', () => {
+        openLightbox();
+      });
+    }
+
+    if (btnCloseLightbox) {
+      btnCloseLightbox.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeLightbox();
+      });
+    }
+
+    if (lightboxModal) {
+      lightboxModal.addEventListener('click', (e) => {
+        if (e.target === lightboxModal || e.target.classList.contains('lightbox-content')) {
+          closeLightbox();
+        }
+      });
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && lightboxModal?.classList.contains('active')) {
+        closeLightbox();
+      }
+    });
+
+    // Clicking any thumbnail swaps it into the main featured showcase
+    thumbWraps.forEach(thumb => {
+      thumb.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const newUrl = thumb.getAttribute('data-img-url');
+        if (newUrl && featuredMainImg) {
+          featuredMainImg.src = newUrl;
+          if (galleryAmbientBg) {
+            galleryAmbientBg.style.backgroundImage = `url('${newUrl}')`;
+          }
+          if (lightboxImg) {
+            lightboxImg.src = newUrl;
+          }
+        }
+      });
+    });
+  });
+</script>

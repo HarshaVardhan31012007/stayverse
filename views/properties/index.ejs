@@ -3,11 +3,25 @@
 <section class="explorer-header">
   <div class="explorer-headline">
     <h1>Find Your Next Escape</h1>
-    <p>Discover distinct vacation homes, beach villas, and cabins across the globe.</p>
+    <p>Discover distinct vacation homes, beach villas, and cabins across the globe with geospatial discovery.</p>
+  </div>
+
+  <!-- Smart Preferences Recommendation Callout -->
+  <div class="explorer-smart-callout">
+    <div class="smart-callout-text">
+      <span class="smart-callout-badge"><i class="fa-solid fa-sparkles"></i> Tailored For You</span>
+      <span>Looking for stays matching your specific budget, vibe, or amenities?</span>
+    </div>
+    <a href="/recommendations" class="btn-smart-matcher">
+      <i class="fa-solid fa-wand-magic-sparkles"></i> Smart Match &rarr;
+    </a>
   </div>
 
   <!-- Search & Filter Controls -->
-  <form action="/properties" method="GET" class="filter-bar">
+  <form action="/properties" method="GET" class="filter-bar" id="propertyFilterForm">
+    <input type="hidden" name="lng" id="geoLng" value="<%= typeof filters !== 'undefined' && filters.lng ? filters.lng : '' %>">
+    <input type="hidden" name="lat" id="geoLat" value="<%= typeof filters !== 'undefined' && filters.lat ? filters.lat : '' %>">
+
     <div class="filter-input-wrap">
       <i class="fa-solid fa-magnifying-glass"></i>
       <input 
@@ -28,99 +42,189 @@
       </select>
     </div>
 
+    <!-- GPS Near Me Button -->
+    <button type="button" class="btn btn-outline <%= typeof filters !== 'undefined' && filters.lat ? 'active-geo' : '' %>" id="nearMeBtn" title="<%= typeof filters !== 'undefined' && filters.lat ? 'Click to clear GPS proximity' : 'Search stays near your current location' %>">
+      <i class="fa-solid fa-location-crosshairs"></i> <%= typeof filters !== 'undefined' && filters.lat ? 'Proximity Active (Clear)' : 'Near Me' %>
+    </button>
+
     <button type="submit" class="btn btn-primary">
       <i class="fa-solid fa-sliders"></i> Filter
     </button>
 
-    <% if (typeof filters !== 'undefined' && (filters.search || filters.sort || filters.amenity)) { %>
-      <a href="/properties" class="btn btn-ghost" title="Reset Filters">
+    <% if (typeof filters !== 'undefined' && (filters.search || filters.sort || filters.amenity || filters.lat)) { %>
+      <a href="/properties" class="btn btn-ghost" id="resetFiltersBtn" title="Reset Filters">
         <i class="fa-solid fa-rotate-left"></i> Reset
       </a>
     <% } %>
   </form>
+
+  <!-- View Switcher & Counter -->
+  <div class="explorer-view-bar">
+    <div class="results-count">
+      <span>Showing <strong><%= pagination ? pagination.total : (properties ? properties.length : 0) %></strong> vacation stays</span>
+      <% if (typeof filters !== 'undefined' && filters.lat) { %>
+        <span class="geo-active-badge"><i class="fa-solid fa-compass"></i> Sorted by GPS Distance</span>
+      <% } %>
+    </div>
+
+    <div class="view-mode-toggle">
+      <button type="button" class="view-toggle-btn active" id="btnToggleGrid">
+        <i class="fa-solid fa-grip"></i> Grid
+      </button>
+      <button type="button" class="view-toggle-btn" id="btnToggleMap">
+        <i class="fa-solid fa-map-location-dot"></i> Interactive Map
+      </button>
+    </div>
+  </div>
 </section>
 
-<!-- Property Grid -->
-<% if (properties && properties.length > 0) { %>
-  <div class="property-grid">
-    <% properties.forEach(prop => { %>
-      <div class="property-card">
-        <a href="/properties/<%= prop._id %>" class="property-card-link">
-          <div class="property-img-wrapper">
-            <img 
-              src="<%= (prop.images && prop.images[0] && prop.images[0].url) ? prop.images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80' %>" 
-              alt="<%= prop.title %>"
-              class="property-img"
-              loading="lazy"
-              onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80';"
-            >
-            <div class="property-rating-badge">
-              <i class="fa-solid fa-star"></i>
-              <span><%= prop.averageRating > 0 ? prop.averageRating.toFixed(1) : 'New' %></span>
-            </div>
-          </div>
+<!-- Interactive Map Container (MapLibre GL with 2dsphere clustered/marker discovery) -->
+<div 
+  class="explorer-map-container" 
+  id="explorerMapWrapper" 
+  style="display: none;"
+>
+  <div 
+    id="explorerMap" 
+    class="explorer-fullscreen-map"
+    data-geojson-url="/api/properties/geojson<%= typeof filters !== 'undefined' ? '?' + new URLSearchParams(filters).toString() : '' %>"
+  ></div>
+</div>
 
-          <div class="property-card-body">
-            <div class="property-card-location">
-              <i class="fa-solid fa-location-dot"></i> <%= prop.city %>, <%= prop.country %>
-            </div>
-            <h3 class="property-card-title"><%= prop.title %></h3>
-            
-            <% if (prop.amenities && prop.amenities.length > 0) { %>
-              <div class="property-amenity-tags">
-                <% prop.amenities.slice(0, 3).forEach(am => { %>
-                  <span class="amenity-tag"><%= am %></span>
-                <% }) %>
-                <% if (prop.amenities.length > 3) { %>
-                  <span class="amenity-tag">+<%= prop.amenities.length - 3 %></span>
-                <% } %>
-              </div>
-            <% } %>
-
-            <div class="property-card-footer">
-              <div class="property-price">
-                <span class="price-val">&#8377;<%= prop.pricePerNight.toLocaleString('en-IN') %></span>
-                <span class="price-unit">/ <%= prop.priceUnit || 'night' %></span>
-              </div>
-              <span class="btn-card-view">View Details &rarr;</span>
-            </div>
-          </div>
-        </a>
-      </div>
-    <% }) %>
-  </div>
-
-  <!-- Pagination Controls -->
-  <% if (pagination && pagination.totalPages > 1) { %>
-    <nav class="pagination-nav">
-      <% if (pagination.hasPrevPage) { %>
-        <a href="/properties?page=<%= pagination.page - 1 %><%= typeof filters !== 'undefined' && filters.search ? '&search=' + encodeURIComponent(filters.search) : '' %><%= typeof filters !== 'undefined' && filters.sort ? '&sort=' + encodeURIComponent(filters.sort) : '' %>" class="btn btn-outline">
-          &larr; Previous
-        </a>
-      <% } else { %>
-        <button class="btn btn-outline" disabled>&larr; Previous</button>
-      <% } %>
-
-      <span class="page-indicator">
-        Page <strong><%= pagination.page %></strong> of <strong><%= pagination.totalPages %></strong> (<%= pagination.total %> total stays)
-      </span>
-
-      <% if (pagination.hasNextPage) { %>
-        <a href="/properties?page=<%= pagination.page + 1 %><%= typeof filters !== 'undefined' && filters.search ? '&search=' + encodeURIComponent(filters.search) : '' %><%= typeof filters !== 'undefined' && filters.sort ? '&sort=' + encodeURIComponent(filters.sort) : '' %>" class="btn btn-outline">
-          Next &rarr;
-        </a>
-      <% } else { %>
-        <button class="btn btn-outline" disabled>Next &rarr;</button>
-      <% } %>
-    </nav>
-  <% } %>
-
-<% } else { %>
-  <!-- Empty State -->
-  <div class="empty-state">
-    <div class="empty-icon"><i class="fa-solid fa-mountain-sun"></i></div>
-    <h2>No properties found</h2>
-    <p>We couldn't find any stays matching your criteria. Try adjusting your search query or reset your filters.</p>
-    <a href="/properties" class="btn btn-primary">Browse All Listings</a>
+<!-- Geo Fallback Notice: shown when GPS location found no nearby results -->
+<% if (typeof geoFallback !== 'undefined' && geoFallback) { %>
+  <div class="geo-fallback-notice">
+    <i class="fa-solid fa-circle-exclamation"></i>
+    <span>No stays found near your current location — showing all available properties instead. Try increasing the search radius or search by city name.</span>
+    <a href="/properties" class="geo-fallback-reset">Reset Search</a>
   </div>
 <% } %>
+
+<!-- Property Grid -->
+<div id="propertyGridWrapper">
+  <% if (properties && properties.length > 0) { %>
+    <div class="property-grid">
+      <% properties.forEach(prop => { %>
+        <div class="property-card">
+          <a href="/properties/<%= prop._id %>" class="property-card-link">
+            <div class="property-img-wrapper">
+              <img 
+                src="<%= (prop.images && prop.images[0] && prop.images[0].url) ? prop.images[0].url : 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80' %>" 
+                alt="<%= prop.title %>"
+                class="property-img"
+                loading="lazy"
+                onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80';"
+              >
+              <div class="property-rating-badge">
+                <i class="fa-solid fa-star"></i>
+                <span><%= prop.averageRating > 0 ? prop.averageRating.toFixed(1) : 'New' %></span>
+              </div>
+            </div>
+
+            <div class="property-card-body">
+              <div class="property-card-location">
+                <i class="fa-solid fa-location-dot"></i> <%= prop.city %>, <%= prop.country %>
+              </div>
+              <h3 class="property-card-title"><%= prop.title %></h3>
+              
+              <% if (prop.amenities && prop.amenities.length > 0) { %>
+                <div class="property-amenity-tags">
+                  <% prop.amenities.slice(0, 3).forEach(am => { %>
+                    <span class="amenity-tag"><%= am %></span>
+                  <% }) %>
+                  <% if (prop.amenities.length > 3) { %>
+                    <span class="amenity-tag">+<%= prop.amenities.length - 3 %></span>
+                  <% } %>
+                </div>
+              <% } %>
+
+              <div class="property-card-footer">
+                <div class="property-price">
+                  <span class="price-val">&#8377;<%= prop.pricePerNight.toLocaleString('en-IN') %></span>
+                  <span class="price-unit">/ <%= prop.priceUnit || 'night' %></span>
+                </div>
+                <span class="btn-card-view">View Details &rarr;</span>
+              </div>
+            </div>
+          </a>
+        </div>
+      <% }) %>
+    </div>
+
+    <!-- Pagination Controls -->
+    <% if (pagination && pagination.totalPages > 1) { %>
+      <nav class="pagination-nav">
+        <% if (pagination.hasPrevPage) { %>
+          <a href="/properties?page=<%= pagination.page - 1 %><%= typeof filters !== 'undefined' && filters.search ? '&search=' + encodeURIComponent(filters.search) : '' %><%= typeof filters !== 'undefined' && filters.sort ? '&sort=' + encodeURIComponent(filters.sort) : '' %>" class="btn btn-outline">
+            &larr; Previous
+          </a>
+        <% } else { %>
+          <button class="btn btn-outline" disabled>&larr; Previous</button>
+        <% } %>
+
+        <span class="page-indicator">
+          Page <strong><%= pagination.page %></strong> of <strong><%= pagination.totalPages %></strong> (<%= pagination.total %> total stays)
+        </span>
+
+        <% if (pagination.hasNextPage) { %>
+          <a href="/properties?page=<%= pagination.page + 1 %><%= typeof filters !== 'undefined' && filters.search ? '&search=' + encodeURIComponent(filters.search) : '' %><%= typeof filters !== 'undefined' && filters.sort ? '&sort=' + encodeURIComponent(filters.sort) : '' %>" class="btn btn-outline">
+            Next &rarr;
+          </a>
+        <% } else { %>
+          <button class="btn btn-outline" disabled>Next &rarr;</button>
+        <% } %>
+      </nav>
+    <% } %>
+
+  <% } else { %>
+    <!-- Empty State -->
+    <div class="empty-state">
+      <div class="empty-icon"><i class="fa-solid fa-mountain-sun"></i></div>
+      <h2>No properties found</h2>
+      <p>We couldn't find any stays matching your criteria. Try a different city name (e.g. "Warangal", "Hyderabad", "Goa"), clear filters, or <strong>disable the GPS Near Me</strong> button and search by text instead.</p>
+      <a href="/properties" class="btn btn-primary">Browse All Listings</a>
+    </div>
+  <% } %>
+</div>
+
+<script>
+  // Toggle between Grid View and Map View
+  document.addEventListener('DOMContentLoaded', () => {
+    const btnGrid = document.getElementById('btnToggleGrid');
+    const btnMap = document.getElementById('btnToggleMap');
+    const gridWrapper = document.getElementById('propertyGridWrapper');
+    const mapWrapper = document.getElementById('explorerMapWrapper');
+
+    if (btnGrid && btnMap && gridWrapper && mapWrapper) {
+      btnGrid.addEventListener('click', () => {
+        btnGrid.classList.add('active');
+        btnMap.classList.remove('active');
+        gridWrapper.style.display = 'block';
+        mapWrapper.style.display = 'none';
+      });
+
+      btnMap.addEventListener('click', () => {
+        btnMap.classList.add('active');
+        btnGrid.classList.remove('active');
+        gridWrapper.style.display = 'none';
+        mapWrapper.style.display = 'block';
+        if (window.stayverseExplorerMap) {
+          window.stayverseExplorerMap.resize();
+        }
+      });
+    }
+
+    // Persist current active search/filter URL so clicking into a listing and coming back preserves all filters
+    if (window.location.search && window.location.search.length > 1) {
+      sessionStorage.setItem('stayverse_filter_url', window.location.href);
+    }
+
+    // Reset filters handler
+    const resetButtons = document.querySelectorAll('#resetFiltersBtn, .geo-fallback-reset');
+    resetButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        sessionStorage.removeItem('stayverse_filter_url');
+      });
+    });
+  });
+</script>

@@ -45,7 +45,10 @@ app.use((req, res, next) => {
 // Mount Routes
 const authRoutes = require('./routes/authRoutes');
 const propertyRoutes = require('./routes/propertyRoutes');
+const bookingRoutes = require('./routes/bookingRoutes');
+const recommendationRoutes = require('./routes/recommendationRoutes');
 const propertyController = require('./controllers/propertyController');
+const bookingController = require('./controllers/bookingController');
 const { requireAuth } = require('./middleware/authMiddleware');
 const { requireRole } = require('./middleware/roleMiddleware');
 const { catchAsync } = require('./middleware/errorMiddleware');
@@ -56,12 +59,25 @@ app.use('/api/auth', authRoutes);
 app.use('/properties', propertyRoutes);
 app.use('/api/properties', propertyRoutes);
 
+app.use('/bookings', bookingRoutes);
+app.use('/api/bookings', bookingRoutes);
+
+app.use('/recommendations', recommendationRoutes);
+app.use('/api/recommendations', recommendationRoutes);
+
 // Host Dashboard direct route
 app.get(
   '/dashboard/host',
   requireAuth,
   requireRole('host'),
   catchAsync(propertyController.getMyProperties)
+);
+
+// Traveler Dashboard direct route (My Bookings)
+app.get(
+  '/dashboard/traveler',
+  requireAuth,
+  catchAsync(bookingController.getTravelerBookings)
 );
 
 // Health Check Endpoint

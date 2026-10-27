@@ -23,14 +23,28 @@ const createReview = async (req, res, next) => {
     return next(new ExpressError('Review comment cannot be empty', 400));
   }
 
+  // Verify that traveler has booked and completed their stay
+  const bookingService = require('../services/bookingService');
+  const eligibility = await bookingService.checkReviewEligibility(req.user._id, id);
+
+  const isApiRequest =
+    req.originalUrl.startsWith('/api') ||
+    req.xhr ||
+    req.headers.accept?.includes('application/json');
+
+  if (!eligibility.canReview) {
+    const errorMsg = eligibility.message;
+    if (isApiRequest) {
+      return next(new ExpressError(errorMsg, 403));
+    }
+    res.cookie('errorMsg', errorMsg, { maxAge: 6000 });
+    return res.redirect(`/properties/${id}`);
+  }
+
   // Prevent duplicate review from the same user on the same property
   const existingReview = await Review.findOne({ property: id, user: req.user._id });
   if (existingReview) {
     const errorMsg = 'You have already submitted a review for this stay.';
-    const isApiRequest =
-      req.originalUrl.startsWith('/api') ||
-      req.xhr ||
-      req.headers.accept?.includes('application/json');
 
     if (isApiRequest) {
       return next(new ExpressError(errorMsg, 400));
@@ -46,12 +60,6 @@ const createReview = async (req, res, next) => {
     rating: numRating,
     comment: comment.trim(),
   });
-
-  const isApiRequest =
-    req.originalUrl.startsWith('/api') ||
-    req.xhr ||
-    req.headers.accept?.includes('application/json');
-
   if (isApiRequest) {
     return res.status(201).json({
       success: true,

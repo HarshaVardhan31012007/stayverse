@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const User = require('../models/User');
 const Property = require('../models/Property');
 const Review = require('../models/Review');
+const Booking = require('../models/Booking');
 const { connectDB, disconnectDB } = require('../config/db');
 
 // Sample listings with GeoJSON coordinates and realistic pricing
@@ -27,6 +28,7 @@ const seedDatabase = async () => {
 
     // 2. Create Demo Verified Travelers for Authentic Reviews
     const demoTravelers = [
+      { name: 'Harsha', email: 'hv31012007@gmail.com', password: 'HarshaPass123', role: 'traveler' },
       { name: 'Rahul Sharma', email: 'rahul@stayverse.com', password: 'TravelerPass123', role: 'traveler' },
       { name: 'Priya Patel', email: 'priya@stayverse.com', password: 'TravelerPass123', role: 'traveler' },
       { name: 'Ananya Sen', email: 'ananya@stayverse.com', password: 'TravelerPass123', role: 'traveler' },
@@ -44,10 +46,11 @@ const seedDatabase = async () => {
     }
     console.log(`[StayVerse Seed] Verified ${travelers.length} guest traveler accounts.`);
 
-    // 3. Clear existing properties & reviews
+    // 3. Clear existing properties, reviews, and bookings
     await Property.deleteMany({});
     await Review.deleteMany({});
-    console.log('[StayVerse Seed] Cleared existing property and review collections');
+    await Booking.deleteMany({});
+    console.log('[StayVerse Seed] Cleared existing property, review, and booking collections');
 
     // 4. Map and insert listings
     const standardAmenities = [
@@ -73,11 +76,7 @@ const seedDatabase = async () => {
       },
       {
         rating: 5,
-        comment: 'Exceeded all expectations. The architecture and lighting create a wonderful ambience. Waking up to these views was pure luxury. Will definitely book again next season.',
-      },
-      {
-        rating: 4,
-        comment: 'Great value for money. Very private, spotless bathrooms, and serene atmosphere. Minor road construction nearby during the day, but our overall stay was thoroughly peaceful.',
+        comment: 'Exceptional architectural detailing and secluded privacy. The host provided great local dining recommendations and check-in was instantaneous. 10/10 stay.',
       },
     ];
 
@@ -85,17 +84,22 @@ const seedDatabase = async () => {
 
     for (let idx = 0; idx < rawListings.length; idx++) {
       const item = rawListings[idx];
-      const coords = item.geometry && item.geometry.coordinates ? item.geometry.coordinates : [-118.7798, 34.0259];
       const amenitiesList = standardAmenities[idx % standardAmenities.length];
+
+      // Default safe coordinates fallback if missing or corrupt
+      let coords = [77.209, 28.6139]; // Default: New Delhi
+      if (item.geometry && Array.isArray(item.geometry.coordinates) && item.geometry.coordinates.length === 2) {
+        coords = item.geometry.coordinates;
+      }
 
       const prop = await Property.create({
         title: item.title,
         description: item.description,
-        pricePerNight: item.price || 8500,
-        priceUnit: idx % 4 === 0 ? 'day' : 'night',
-        address: `${100 + idx} Coastal Avenue`,
-        city: item.location || 'Malibu',
-        country: item.country || 'United States',
+        pricePerNight: item.price || 5000,
+        priceUnit: 'night',
+        address: `${idx + 10} Scenic Boulevard`,
+        city: item.location || 'Goa',
+        country: item.country || 'India',
         location: {
           type: 'Point',
           coordinates: coords, // [longitude, latitude]
@@ -114,11 +118,30 @@ const seedDatabase = async () => {
 
       createdProperties.push(prop);
 
-      // Create 2-3 genuine guest reviews for each property from different travelers
-      const reviewCountForStay = 2 + (idx % 3);
+      // Create 2 genuine past completed bookings and reviews for each property
+      const reviewCountForStay = 2 + (idx % 2);
       for (let r = 0; r < reviewCountForStay; r++) {
-        const traveler = travelers[(idx + r) % travelers.length];
+        // Pick demo travelers (skipping Harsha for initial reviews so Harsha has fresh unreviewed stays)
+        const demoGuests = travelers.filter(u => u.email !== 'hv31012007@gmail.com');
+        const traveler = demoGuests[(idx + r) % demoGuests.length];
         const reviewTemplate = sampleReviewsData[(idx + r) % sampleReviewsData.length];
+
+        // Completed booking in the past
+        const pastCheckIn = new Date();
+        pastCheckIn.setDate(pastCheckIn.getDate() - (40 + r * 10));
+        const pastCheckOut = new Date(pastCheckIn);
+        pastCheckOut.setDate(pastCheckOut.getDate() + 4);
+
+        await Booking.create({
+          property: prop._id,
+          user: traveler._id,
+          checkIn: pastCheckIn,
+          checkOut: pastCheckOut,
+          totalNights: 4,
+          totalPrice: prop.pricePerNight * 4,
+          guests: 2,
+          status: 'confirmed',
+        });
 
         await Review.create({
           property: prop._id,
@@ -129,7 +152,47 @@ const seedDatabase = async () => {
       }
     }
 
-    console.log(`[StayVerse Seed] Successfully seeded ${createdProperties.length} properties with genuine reviews and calculated ratings!`);
+    // Seed specific test bookings for Harsha (hv31012007@gmail.com)
+    const harshaUser = travelers.find(u => u.email === 'hv31012007@gmail.com');
+    if (harshaUser && createdProperties.length >= 2) {
+      // 1. Completed stay (checkout was 3 days ago) -> Eligible to write a review!
+      const pastStart = new Date();
+      pastStart.setDate(pastStart.getDate() - 7);
+      const pastEnd = new Date();
+      pastEnd.setDate(pastEnd.getDate() - 3);
+
+      await Booking.create({
+        property: createdProperties[0]._id,
+        user: harshaUser._id,
+        checkIn: pastStart,
+        checkOut: pastEnd,
+        totalNights: 4,
+        totalPrice: createdProperties[0].pricePerNight * 4,
+        guests: 2,
+        status: 'confirmed',
+      });
+
+      // 2. Upcoming stay (starts in 10 days) -> Shows in dashboard, review is locked until checkout!
+      const futureStart = new Date();
+      futureStart.setDate(futureStart.getDate() + 10);
+      const futureEnd = new Date(futureStart);
+      futureEnd.setDate(futureEnd.getDate() + 5);
+
+      await Booking.create({
+        property: createdProperties[1]._id,
+        user: harshaUser._id,
+        checkIn: futureStart,
+        checkOut: futureEnd,
+        totalNights: 5,
+        totalPrice: createdProperties[1].pricePerNight * 5,
+        guests: 3,
+        status: 'confirmed',
+      });
+
+      console.log(`[StayVerse Seed] Seeded 1 completed stay (eligible for review) & 1 upcoming trip for Harsha (${harshaUser.email})!`);
+    }
+
+    console.log(`[StayVerse Seed] Successfully seeded ${createdProperties.length} properties with completed bookings, verified reviews, and traveler itineraries!`);
 
     await disconnectDB();
     console.log('[StayVerse Seed] Seeding completed.');

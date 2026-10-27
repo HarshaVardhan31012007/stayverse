@@ -34,6 +34,16 @@ const userSchema = new mongoose.Schema(
       },
       default: 'traveler',
     },
+    preferences: {
+      vibe: { type: String, default: '' },
+      region: { type: String, default: 'all' },
+      minPrice: { type: Number, default: 0 },
+      maxPrice: { type: Number, default: 30000 },
+      minRating: { type: Number, default: 0 },
+      amenities: { type: [String], default: [] },
+      city: { type: String, default: '' },
+      radius: { type: Number, default: 0 },
+    },
   },
   {
     timestamps: true,
