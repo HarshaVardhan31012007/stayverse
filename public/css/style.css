@@ -1499,7 +1499,31 @@ body.site-body {
 }
 
 .section-divider {
-  display: none;
+  display: block;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 3.5rem 0 2.5rem;
+}
+
+.curated-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(139, 92, 246, 0.18) 100%);
+  border: 1px solid rgba(139, 92, 246, 0.45);
+  color: #c4b5fd;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.32rem 0.85rem;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.85rem;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.15);
+}
+
+.curated-badge i {
+  color: #a78bfa;
 }
 
 .property-section {
@@ -5102,7 +5126,13 @@ html, body {
   .property-sidebar {
     position: static !important;
     width: 100% !important;
-    margin-top: 1.5rem !important;
+    margin-top: 2rem !important;
+    margin-bottom: 3.5rem !important; /* Generous gap between Reserve with Stripe card and recommendations on mobile */
+  }
+
+  .recommendations-section {
+    margin-top: 2rem !important;
+    padding-top: 0.5rem !important;
   }
 
   .date-picker-grid {
