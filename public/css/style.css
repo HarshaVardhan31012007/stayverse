@@ -4867,6 +4867,113 @@ body.site-body {
   border-radius: 999px;
 }
 
+/* ==========================================================================
+   MOBILE PHONE RESPONSIVENESS (<= 640px & <= 480px)
+   Ultra-polished layouts and touch targets for iOS & Android
+   ========================================================================== */
+@media (max-width: 640px) {
+  .stripe-modal-overlay {
+    padding: 0.5rem;
+    align-items: flex-end; /* Bottom sheet style on small mobile */
+  }
+
+  .stripe-modal-card {
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+    max-height: 92vh;
+  }
+
+  .stripe-modal-header {
+    padding: 0.85rem 1rem;
+  }
+
+  .stripe-logo-text {
+    font-size: 1.8rem;
+  }
+
+  .stripe-modal-body {
+    padding: 1rem;
+  }
+
+  .stripe-order-summary {
+    padding: 0.65rem 0.75rem;
+    gap: 0.75rem;
+  }
+
+  .stripe-summary-media {
+    width: 48px;
+    height: 48px;
+  }
+
+  .stripe-summary-title {
+    font-size: 0.86rem;
+  }
+
+  .stripe-summary-amount {
+    font-size: 1.05rem;
+  }
+
+  .stripe-card-element-box {
+    padding: 0.75rem 0.85rem;
+  }
+
+  .btn-stripe-pay {
+    padding: 0.85rem;
+    font-size: 0.95rem;
+    min-height: 48px;
+  }
+
+  .btn-stripe-cancel {
+    padding: 0.75rem;
+    min-height: 44px;
+  }
+
+  /* Booking cards on traveler dashboard */
+  .booking-pricing-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .booking-dates-box {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Property layout */
+  .property-layout {
+    grid-template-columns: 1fr !important;
+  }
+
+  .property-sidebar {
+    position: static !important;
+    margin-top: 2rem;
+  }
+
+  .date-picker-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .stripe-split-row {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stripe-modal-footer {
+    padding: 0.65rem 1rem;
+    font-size: 0.7rem;
+    flex-direction: column;
+    gap: 0.35rem;
+    text-align: center;
+  }
+
+  .site-main {
+    padding: 1rem 0.75rem;
+  }
+}
+
+
 
 
 
