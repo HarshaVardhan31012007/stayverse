@@ -61,7 +61,7 @@
           </div>
           <div class="host-card-body">
             <div class="host-card-meta">
-              <span class="host-card-location"><i class="fa-solid fa-location-dot"></i> <%= prop.city %>, <%= prop.country %></span>
+              <span class="host-card-location"><i class="fa-solid fa-location-dot"></i> <%= prop.address ? prop.address + ', ' : '' %><%= prop.city %>, <%= prop.country %></span>
               <span class="host-card-rating"><i class="fa-solid fa-star text-warning"></i> <%= prop.averageRating > 0 ? prop.averageRating.toFixed(1) : 'New' %></span>
             </div>
             <h3 class="host-card-title"><%= prop.title %></h3>

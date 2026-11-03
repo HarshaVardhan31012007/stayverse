@@ -137,7 +137,7 @@
 
             <div class="property-card-body">
               <div class="property-card-location">
-                <i class="fa-solid fa-location-dot"></i> <%= prop.city %>, <%= prop.country %>
+                <i class="fa-solid fa-location-dot"></i> <%= prop.address ? prop.address + ', ' : '' %><%= prop.city %>, <%= prop.country %>
               </div>
               <h3 class="property-card-title"><%= prop.title %></h3>
               

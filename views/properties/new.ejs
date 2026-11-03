@@ -129,8 +129,8 @@
             name="latitude" 
             id="latitude" 
             class="form-control-plain" 
-            placeholder="34.0259"
-            value="<%= typeof property !== 'undefined' && property && property.location && property.location.coordinates ? property.location.coordinates[1] : (typeof property !== 'undefined' && property && property.latitude ? property.latitude : '34.0259') %>"
+            placeholder="15.5186"
+            value="<%= typeof property !== 'undefined' && property && property.location && property.location.coordinates ? property.location.coordinates[1] : (typeof property !== 'undefined' && property && property.latitude ? property.latitude : '') %>"
             required
           >
         </div>
@@ -143,8 +143,8 @@
             name="longitude" 
             id="longitude" 
             class="form-control-plain" 
-            placeholder="-118.7798"
-            value="<%= typeof property !== 'undefined' && property && property.location && property.location.coordinates ? property.location.coordinates[0] : (typeof property !== 'undefined' && property && property.longitude ? property.longitude : '-118.7798') %>"
+            placeholder="73.7626"
+            value="<%= typeof property !== 'undefined' && property && property.location && property.location.coordinates ? property.location.coordinates[0] : (typeof property !== 'undefined' && property && property.longitude ? property.longitude : '') %>"
             required
           >
         </div>
