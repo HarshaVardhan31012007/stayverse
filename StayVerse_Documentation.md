@@ -484,3 +484,4 @@ Time:        43.567 s
 | `tests/preferenceRecommendations.test.js` | **7/7 PASSED** | Scoring algorithm, vibe keywords, amenity match ratio, radius & Haversine distance, and 3-tier preference persistence. |
 | `tests/phase0.test.js` – `tests/phase6.test.js` | **40/40 PASSED** | Core authentication, RBAC authorization, CRUD operations, 2dsphere geospatial search, reviews, and template rendering. |
 | `testConcurrency.js` | **PASSED** | Concurrent booking simulation verifying zero double-booking overlaps under ACID transactions. |
+
