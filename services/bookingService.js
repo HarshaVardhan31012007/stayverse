@@ -258,10 +258,10 @@ const checkReviewEligibility = async (userId, propertyId) => {
 };
 
 /**
- * Cancel an upcoming reservation
+ * Cancel an upcoming reservation with automatic refund calculation & ledger tracking
  */
 const cancelBooking = async (bookingId, userId) => {
-  const booking = await Booking.findById(bookingId);
+  const booking = await Booking.findById(bookingId).populate('property');
   if (!booking) {
     throw new ExpressError('Booking not found', 404);
   }
@@ -279,9 +279,54 @@ const cancelBooking = async (bookingId, userId) => {
     throw new ExpressError('Cannot cancel a booking that has already started or ended.', 400);
   }
 
-  booking.status = 'cancelled';
-  await booking.save();
-  return booking;
+  const refundService = require('./refundService');
+  const refundResult = await refundService.processRefund({
+    booking,
+    userId,
+    reason: 'user_cancellation',
+    notes: 'Traveler cancelled reservation via dashboard',
+  });
+
+  return { booking, refund: refundResult.refund };
+};
+
+/**
+ * Delete a booking with automatic refund processing for travelers
+ */
+const deleteBooking = async (bookingId, userId, isAdmin = false) => {
+  const booking = await Booking.findById(bookingId).populate('property');
+  if (!booking) {
+    throw new ExpressError('Booking not found', 404);
+  }
+
+  const isOwner = booking.user.toString() === userId.toString();
+  const isHost =
+    booking.property &&
+    booking.property.host &&
+    booking.property.host.toString() === userId.toString();
+
+  if (!isOwner && !isHost && !isAdmin) {
+    throw new ExpressError('Forbidden: Not authorized to delete this booking.', 403);
+  }
+
+  // If not yet refunded and not cancelled, process refund prior to deletion
+  if (booking.status !== 'cancelled' && booking.refundStatus !== 'full') {
+    const refundService = require('./refundService');
+    const reason = isOwner ? 'user_cancellation' : 'admin_cancellation';
+    try {
+      await refundService.processRefund({
+        booking,
+        userId: booking.user,
+        reason,
+        notes: `Automatic refund prior to deletion of booking ${bookingId}`,
+      });
+    } catch (err) {
+      console.error(`[deleteBooking] Refund error on booking ${bookingId}:`, err.message);
+    }
+  }
+
+  await Booking.findByIdAndDelete(bookingId);
+  return { success: true, bookingId };
 };
 
 /**
@@ -329,4 +374,5 @@ module.exports = {
   getPropertyBookedRanges,
   checkReviewEligibility,
   cancelBooking,
+  deleteBooking,
 };

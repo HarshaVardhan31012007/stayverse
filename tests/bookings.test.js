@@ -49,7 +49,7 @@ describe('Traveler Bookings & Review Eligibility Integration Tests', () => {
 
     // Create Property
     testProperty = await Property.create({
-      title: 'Oceanview Sanctuary',
+      title: 'Oceanview Perfect Stay',
       description: 'Stunning oceanside villa with panoramic views.',
       pricePerNight: 8000,
       priceUnit: 'night',
@@ -110,7 +110,7 @@ describe('Traveler Bookings & Review Eligibility Integration Tests', () => {
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
       expect(res.body.data.totalNights).toBe(3);
-      expect(res.body.data.totalPrice).toBe(24000);
+      expect(res.body.data.totalPrice).toBe(28080);
       expect(res.body.data.status).toBe('confirmed');
     });
 

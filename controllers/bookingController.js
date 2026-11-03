@@ -42,6 +42,8 @@ const createBooking = async (req, res, next) => {
 // Render traveler bookings dashboard
 const getTravelerBookings = async (req, res) => {
   const bookings = await bookingService.getUserBookings(req.user._id);
+  const refundService = require('../services/refundService');
+  const refunds = await refundService.getUserRefundHistory(req.user._id);
 
   const isApiRequest =
     req.originalUrl.startsWith('/api') ||
@@ -53,12 +55,14 @@ const getTravelerBookings = async (req, res) => {
       success: true,
       count: bookings.length,
       data: bookings,
+      refunds,
     });
   }
 
   res.render('dashboard/traveler', {
     title: 'My Booked Stays — StayVerse',
     bookings,
+    refunds,
   });
 };
 
@@ -66,7 +70,8 @@ const getTravelerBookings = async (req, res) => {
 const cancelBooking = async (req, res) => {
   const { bookingId } = req.params;
 
-  const booking = await bookingService.cancelBooking(bookingId, req.user._id);
+  const result = await bookingService.cancelBooking(bookingId, req.user._id);
+  const booking = result.booking || result;
 
   const isApiRequest =
     req.originalUrl.startsWith('/api') ||
@@ -78,10 +83,33 @@ const cancelBooking = async (req, res) => {
       success: true,
       message: 'Booking cancelled successfully.',
       data: booking,
+      refund: result.refund,
     });
   }
 
-  res.cookie('successMsg', 'Your reservation has been cancelled.', { maxAge: 5000 });
+  res.cookie('successMsg', 'Your reservation has been cancelled and refund processed.', { maxAge: 5000 });
+  res.redirect('/dashboard/traveler');
+};
+
+// Delete a reservation
+const deleteBooking = async (req, res) => {
+  const { bookingId } = req.params;
+  const isAdmin = req.user && req.user.role === 'admin';
+  await bookingService.deleteBooking(bookingId, req.user._id, isAdmin);
+
+  const isApiRequest =
+    req.originalUrl.startsWith('/api') ||
+    req.xhr ||
+    req.headers.accept?.includes('application/json');
+
+  if (isApiRequest) {
+    return res.status(200).json({
+      success: true,
+      message: 'Booking deleted and applicable refunds processed.',
+    });
+  }
+
+  res.cookie('successMsg', 'Booking record deleted.', { maxAge: 5000 });
   res.redirect('/dashboard/traveler');
 };
 
@@ -89,4 +117,5 @@ module.exports = {
   createBooking,
   getTravelerBookings,
   cancelBooking,
+  deleteBooking,
 };

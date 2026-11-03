@@ -1,5 +1,6 @@
 const Property = require('../models/Property');
 const { formatUploadedImages } = require('../middleware/uploadMiddleware');
+const cacheService = require('./cacheService');
 
 // Great-circle distance between two GPS coordinates in kilometers
 const calculateHaversineDistanceKm = (lat1, lon1, lat2, lon2) => {
@@ -37,6 +38,18 @@ class PropertyService {
       page = 1,
       limit = 12,
     } = queryParams;
+
+    // Cache-Aside: Check Redis cache for matching query
+    const sortedParamKeys = Object.keys(queryParams).sort();
+    const normalizedQueryStr = sortedParamKeys
+      .map((k) => `${k}=${queryParams[k]}`)
+      .join('&');
+    const cacheKey = `property:list:${normalizedQueryStr || 'default'}`;
+
+    const cachedData = await cacheService.get(cacheKey);
+    if (cachedData) {
+      return cachedData;
+    }
 
     const query = {};
 
@@ -183,7 +196,7 @@ class PropertyService {
       };
     }
 
-    return {
+    const result = {
       properties,
       pagination: {
         total,
@@ -194,14 +207,27 @@ class PropertyService {
         hasNextPage: pageNum < totalPages,
       },
     };
+
+    // Cache-Aside: Store in Redis with TTL = 300 seconds (5 min)
+    await cacheService.set(cacheKey, result, 300);
+
+    return result;
   }
 
   /**
    * Retrieve listings in GeoJSON FeatureCollection format for interactive maps
    */
   async getPropertiesGeoJSON(queryParams = {}) {
+    const isDefaultQuery = !queryParams || Object.keys(queryParams).length === 0;
+    const cacheKey = 'property:geojson';
+
+    if (isDefaultQuery) {
+      const cached = await cacheService.get(cacheKey);
+      if (cached) return cached;
+    }
+
     const result = await this.listProperties({ ...queryParams, limit: 100, page: 1 });
-    return {
+    const geojson = {
       type: 'FeatureCollection',
       features: result.properties
         .filter((p) => p.location && p.location.coordinates && p.location.coordinates.length === 2)
@@ -224,13 +250,29 @@ class PropertyService {
           },
         })),
     };
+
+    if (isDefaultQuery) {
+      await cacheService.set(cacheKey, geojson, 300);
+    }
+
+    return geojson;
   }
 
   /**
-   * Retrieve property by ID with host details
+   * Retrieve property by ID with host details (Cache-Aside with 10 min TTL)
    */
   async getPropertyById(id) {
-    return Property.findById(id).populate('host', 'name email');
+    const cacheKey = `property:detail:${id}`;
+    const cached = await cacheService.get(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const property = await Property.findById(id).populate('host', 'name email');
+    if (property) {
+      await cacheService.set(cacheKey, property, 600);
+    }
+    return property;
   }
 
   /**
@@ -288,7 +330,13 @@ class PropertyService {
       ...(uploadedImages.length > 0 && { images: uploadedImages }),
     });
 
-    return property.save();
+    const savedProperty = await property.save();
+
+    // Invalidate cached listings & map data
+    await cacheService.delByPattern('property:list:*');
+    await cacheService.del('property:geojson');
+
+    return savedProperty;
   }
 
   /**
@@ -339,14 +387,64 @@ class PropertyService {
       property.images.push(...newImages);
     }
 
-    return property.save();
+    const updated = await property.save();
+
+    // Invalidate Redis caches
+    await cacheService.del(`property:detail:${property._id}`);
+    await cacheService.delByPattern('property:list:*');
+    await cacheService.del('property:geojson');
+
+    return updated;
   }
 
   /**
-   * Delete a property
+   * Delete a property with Automatic Cascading Deletion & Refund Processing:
+   * 1. Automatically refunds all confirmed/active bookings.
+   * 2. Automatically deletes all bookings associated with the property.
+   * 3. Automatically deletes all reviews associated with the property.
+   * 4. Invalidates Redis caches.
+   * 5. Deletes the property record.
    */
   async deleteProperty(property) {
-    return Property.findByIdAndDelete(property._id);
+    const propertyId = property._id || property;
+    const Booking = require('../models/Booking');
+    const Review = require('../models/Review');
+    const refundService = require('./refundService');
+
+    // 1. Fetch all bookings for this property to process refunds
+    const bookings = await Booking.find({ property: propertyId });
+
+    // 2. Process applicable refunds for all affected bookings before deletion
+    for (const booking of bookings) {
+      if (booking.status !== 'cancelled' && booking.refundStatus !== 'full') {
+        try {
+          await refundService.processRefund({
+            booking,
+            userId: booking.user,
+            propertyTitle: property.title,
+            reason: 'property_deletion',
+            notes: `Automatic refund due to property listing deletion: ${property.title || propertyId}`,
+          });
+        } catch (err) {
+          console.error(`[deleteProperty] Refund processing failed for booking ${booking._id}:`, err.message);
+        }
+      }
+    }
+
+    // 3. Cascading Deletion: Delete all bookings for this property
+    await Booking.deleteMany({ property: propertyId });
+
+    // 4. Cascading Deletion: Delete all reviews for this property
+    await Review.deleteMany({ property: propertyId });
+
+    // 5. Invalidate relevant Redis caches
+    await cacheService.del(`property:detail:${propertyId}`);
+    await cacheService.delByPattern('property:list:*');
+    await cacheService.del('property:geojson');
+
+    // 6. Delete property document
+    const deletedProperty = await Property.findByIdAndDelete(propertyId);
+    return deletedProperty;
   }
 
   /**
@@ -456,7 +554,7 @@ class PropertyService {
       mountain: ['mountain', 'alpine', 'pine', 'forest', 'cabin', 'hot tub', 'fireplace', 'snow', 'glacier', 'chalet', 'ski', 'himalayan', 'altitude', 'peak'],
       heritage: ['heritage', 'haveli', 'palace', 'historic', 'fort', 'temple', 'architecture', 'traditional', 'stone', '18th-century', 'carved', 'marble', 'restored', 'vineyard', 'charminar', 'warangal'],
       city: ['city', 'loft', 'skyline', 'downtown', 'penthouse', 'urban', 'modern', 'hitec', 'studio', 'elevator', 'high-floor', 'terrace', 'hyderabad'],
-      lake: ['lake', 'lakeside', 'river', 'water', 'houseboat', 'backwaters', 'sanctuary', 'dam', 'boat', 'lagoon', 'ravine', 'canal', 'pakhal', 'kerala'],
+      lake: ['lake', 'lakeside', 'river', 'water', 'houseboat', 'backwaters', 'perfect-stay', 'dam', 'boat', 'lagoon', 'ravine', 'canal', 'pakhal', 'kerala'],
       wellness: ['wellness', 'yoga', 'ashram', 'retreat', 'spiritual', 'meditation', 'spa', 'ayurvedic', 'tranquil', 'peaceful', 'frangipani', 'organic', 'rishikesh', 'bali'],
       workcation: ['wifi', 'workspace', 'fibre', 'internet', 'dedicated workspace', 'desk', 'high-speed', 'remote work', 'quiet'],
       luxury: ['luxury', 'villa', 'infinity', 'penthouse', 'palace', 'private pool', 'suite', 'chef', 'safari', 'glamping'],

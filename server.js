@@ -26,7 +26,15 @@ const startServer = async () => {
       console.log(`\n[StayVerse] Received ${signal}. Initiating graceful shutdown...`);
       server.close(async () => {
         await disconnectDB();
-        console.log('[StayVerse] HTTP server and database connections closed. Bye!');
+        try {
+          const { disconnectRedis } = require('./config/redis');
+          await disconnectRedis();
+          const cacheService = require('./services/cacheService');
+          await cacheService.disconnect();
+        } catch (err) {
+          // ignore cleanup errors during exit
+        }
+        console.log('[StayVerse] HTTP server, database, and Redis connections closed. Bye!');
         process.exit(0);
       });
     };

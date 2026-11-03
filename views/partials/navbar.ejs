@@ -30,6 +30,7 @@
               <i class="fa-solid fa-chevron-down"></i>
             </button>
             <div class="dropdown-content" id="userDropdownContent">
+              <a href="/profile" class="dropdown-item"><i class="fa-solid fa-circle-user"></i> My Profile</a>
               <a href="/recommendations" class="dropdown-item"><i class="fa-solid fa-bullseye"></i> My Recommendations</a>
               <% if (currentUser.role === 'host') { %>
                 <a href="/dashboard/host" class="dropdown-item"><i class="fa-solid fa-chart-line"></i> Host Dashboard</a>

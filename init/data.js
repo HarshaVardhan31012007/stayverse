@@ -17,7 +17,7 @@ const sampleListings = [
   },
   {
     title: "Lakeside Retreat at Pakhal Lake",
-    description: "A peaceful lakeside cottage surrounded by lush forests of the Pakhal Wildlife Sanctuary near Warangal. Wake up to birdsong, enjoy morning boat rides on the pristine lake, and explore the stunning dam area. Ideal for nature lovers and birdwatchers.",
+    description: "A peaceful lakeside cottage surrounded by lush forests of the Pakhal Wildlife Reserve near Warangal. Wake up to birdsong, enjoy morning boat rides on the pristine lake, and explore the stunning dam area. Ideal for nature lovers and birdwatchers.",
     image: {
       filename: "pakhal-lake",
       url: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=80"

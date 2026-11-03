@@ -55,6 +55,19 @@
           <span class="stat-label">Awaiting Your Review</span>
         </div>
       </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-purple"><i class="fa-solid fa-arrow-rotate-left"></i></div>
+        <div class="stat-details">
+          <%
+            const ledgerTotal = (typeof refunds !== 'undefined' && refunds && refunds.length > 0) ? refunds.reduce((sum, r) => sum + (r.amount || 0), 0) : 0;
+            const userCumulative = (currentUser && currentUser.cumulativeRefunded) ? currentUser.cumulativeRefunded : 0;
+            const cancelledTotal = bookings ? bookings.filter(b => b.status === 'cancelled').reduce((sum, b) => sum + (b.refundAmount || b.totalPrice || 0), 0) : 0;
+            const totalRefundedDisplay = Math.max(userCumulative, ledgerTotal, cancelledTotal);
+          %>
+          <span class="stat-number">&#8377;<%= Number(totalRefundedDisplay).toLocaleString('en-IN') %></span>
+          <span class="stat-label">Total Refunded</span>
+        </div>
+      </div>
     </div>
 
     <!-- Filter Buttons -->
@@ -195,6 +208,48 @@
       <a href="/properties" class="btn btn-primary btn-lg">
         <i class="fa-solid fa-magnifying-glass"></i> Find Your Next Stay
       </a>
+    </div>
+  <% } %>
+  <% if (typeof refunds !== 'undefined' && refunds && refunds.length > 0) { %>
+    <!-- Permanent Refund Ledger History -->
+    <div class="refund-ledger-section mt-5" style="margin-top: 2.5rem; background: var(--bg-surface, #1e293b); border: 1px solid var(--border-color, #334155); border-radius: 12px; padding: 1.5rem;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+          <h3 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #f8fafc;"><i class="fa-solid fa-receipt text-primary"></i> Refund History & Audit Ledger</h3>
+          <p style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #94a3b8;">Permanent financial record of all processed refunds and policy settlements</p>
+        </div>
+        <span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #10b981; padding: 0.35rem 0.75rem; border-radius: 9999px; font-weight: 600; font-size: 0.85rem;">
+          <%= refunds.length %> <%= refunds.length === 1 ? 'Record' : 'Records' %>
+        </span>
+      </div>
+      <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--border-color, #334155); color: #94a3b8;">
+              <th style="padding: 0.75rem 1rem;">Property / Stay</th>
+              <th style="padding: 0.75rem 1rem;">Original Price</th>
+              <th style="padding: 0.75rem 1rem;">Refunded</th>
+              <th style="padding: 0.75rem 1rem;">Policy</th>
+              <th style="padding: 0.75rem 1rem;">Reason</th>
+              <th style="padding: 0.75rem 1rem;">Processed On</th>
+              <th style="padding: 0.75rem 1rem;">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% refunds.forEach(r => { %>
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05); color: #e2e8f0;">
+                <td style="padding: 0.75rem 1rem; font-weight: 600;"><%= r.propertyTitle || 'Vacation Stay' %></td>
+                <td style="padding: 0.75rem 1rem;">&#8377;<%= Number(r.originalAmount).toLocaleString('en-IN') %></td>
+                <td style="padding: 0.75rem 1rem; color: #10b981; font-weight: 700;">&#8377;<%= Number(r.amount).toLocaleString('en-IN') %> (<%= r.refundPercentage %>%)</td>
+                <td style="padding: 0.75rem 1rem; font-size: 0.8rem; color: #cbd5e1;"><%= r.policyApplied %></td>
+                <td style="padding: 0.75rem 1rem; text-transform: capitalize;"><%= r.reason.replace('_', ' ') %></td>
+                <td style="padding: 0.75rem 1rem; color: #94a3b8;"><%= new Date(r.processedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></td>
+                <td style="padding: 0.75rem 1rem;"><span style="color: #10b981; font-weight: 600;"><i class="fa-solid fa-circle-check"></i> Completed</span></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
     </div>
   <% } %>
 </div>

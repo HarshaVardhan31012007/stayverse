@@ -78,6 +78,19 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    refundAmount: {
+      type: Number,
+      default: 0,
+      min: [0, 'Refund amount cannot be negative'],
+    },
+    refundStatus: {
+      type: String,
+      enum: ['none', 'partial', 'full'],
+      default: 'none',
+    },
+    refundedAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true,

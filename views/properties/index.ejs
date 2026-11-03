@@ -78,6 +78,20 @@
   </div>
 </section>
 
+<% 
+  // Build clean query string for GeoJSON: exclude empty parameters so full catalog is discovered
+  let cleanGeoParams = {};
+  if (typeof filters !== 'undefined' && filters) {
+    Object.keys(filters).forEach(k => {
+      const val = filters[k];
+      if (val !== undefined && val !== null && String(val).trim() !== '') {
+        cleanGeoParams[k] = String(val).trim();
+      }
+    });
+  }
+  const geojsonParamStr = new URLSearchParams(cleanGeoParams).toString();
+%>
+
 <!-- Interactive Map Container (MapLibre GL with 2dsphere clustered/marker discovery) -->
 <div 
   class="explorer-map-container" 
@@ -87,7 +101,7 @@
   <div 
     id="explorerMap" 
     class="explorer-fullscreen-map"
-    data-geojson-url="/api/properties/geojson<%= typeof filters !== 'undefined' ? '?' + new URLSearchParams(filters).toString() : '' %>"
+    data-geojson-url="/api/properties/geojson<%= geojsonParamStr ? '?' + geojsonParamStr : '' %>"
   ></div>
 </div>
 
@@ -195,23 +209,43 @@
     const gridWrapper = document.getElementById('propertyGridWrapper');
     const mapWrapper = document.getElementById('explorerMapWrapper');
 
-    if (btnGrid && btnMap && gridWrapper && mapWrapper) {
-      btnGrid.addEventListener('click', () => {
-        btnGrid.classList.add('active');
-        btnMap.classList.remove('active');
-        gridWrapper.style.display = 'block';
-        mapWrapper.style.display = 'none';
-      });
+    const activateMapView = () => {
+      if (!btnGrid || !btnMap || !gridWrapper || !mapWrapper) return;
+      btnMap.classList.add('active');
+      btnGrid.classList.remove('active');
+      gridWrapper.style.display = 'none';
+      mapWrapper.style.display = 'block';
+      sessionStorage.setItem('stayverse_view_mode', 'map');
 
-      btnMap.addEventListener('click', () => {
-        btnMap.classList.add('active');
-        btnGrid.classList.remove('active');
-        gridWrapper.style.display = 'none';
-        mapWrapper.style.display = 'block';
-        if (window.stayverseExplorerMap) {
-          window.stayverseExplorerMap.resize();
-        }
-      });
+      if (window.stayverseExplorerMap) {
+        window.stayverseExplorerMap.resize();
+        setTimeout(() => {
+          if (window.stayverseFitExplorerBounds) {
+            window.stayverseFitExplorerBounds();
+          }
+        }, 120);
+      }
+    };
+
+    const activateGridView = () => {
+      if (!btnGrid || !btnMap || !gridWrapper || !mapWrapper) return;
+      btnGrid.classList.add('active');
+      btnMap.classList.remove('active');
+      gridWrapper.style.display = 'block';
+      mapWrapper.style.display = 'none';
+      sessionStorage.setItem('stayverse_view_mode', 'grid');
+    };
+
+    if (btnGrid && btnMap && gridWrapper && mapWrapper) {
+      btnGrid.addEventListener('click', activateGridView);
+      btnMap.addEventListener('click', activateMapView);
+
+      // Restore user's preferred view mode across refresh or reset
+      const urlParams = new URLSearchParams(window.location.search);
+      const requestedView = urlParams.get('view') || sessionStorage.getItem('stayverse_view_mode');
+      if (requestedView === 'map') {
+        activateMapView();
+      }
     }
 
     // Persist current active search/filter URL so clicking into a listing and coming back preserves all filters

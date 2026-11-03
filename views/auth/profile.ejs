@@ -1,0 +1,284 @@
+<% layout('layouts/boilerplate') %>
+
+<div class="dashboard-wrapper">
+  <!-- Profile Page Header Banner -->
+  <div class="profile-header-card">
+    <div class="profile-header-content">
+      <div class="profile-avatar-large">
+        <span><%= user.name ? user.name.charAt(0).toUpperCase() : 'U' %></span>
+      </div>
+      <div class="profile-user-info">
+        <div class="profile-title-row">
+          <h1 class="profile-name"><%= user.name %></h1>
+          <span class="user-role-badge badge-<%= user.role %>">
+            <i class="fa-solid <%= user.role === 'host' ? 'fa-key' : 'fa-suitcase' %>"></i> <%= user.role.toUpperCase() %>
+          </span>
+          <span class="profile-verified-badge" title="Identity Verified">
+            <i class="fa-solid fa-circle-check"></i> Verified Member
+          </span>
+        </div>
+        <p class="profile-email">
+          <i class="fa-solid fa-envelope"></i> <%= user.email %>
+        </p>
+        <p class="profile-meta">
+          <i class="fa-solid fa-clock"></i> Member since <%= new Date(user.createdAt || Date.now()).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) %>
+        </p>
+      </div>
+    </div>
+
+    <div class="profile-quick-actions">
+      <% if (user.role === 'host') { %>
+        <a href="/dashboard/host" class="btn btn-primary">
+          <i class="fa-solid fa-chart-line"></i> Host Dashboard
+        </a>
+        <a href="/properties/new" class="btn btn-outline">
+          <i class="fa-solid fa-plus"></i> Add New Stay
+        </a>
+      <% } else { %>
+        <a href="/dashboard/traveler" class="btn btn-primary">
+          <i class="fa-solid fa-suitcase"></i> My Booked Stays
+        </a>
+        <a href="/recommendations" class="btn btn-outline">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Smart Match
+        </a>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Key Activity Statistics Grid -->
+  <div class="traveler-stats-grid">
+    <% if (user.role === 'host') { %>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-house-chimney"></i></div>
+        <div class="stat-details">
+          <span class="stat-number"><%= stats.propertiesCount || 0 %></span>
+          <span class="stat-label">Active Listings</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-green"><i class="fa-solid fa-calendar-check"></i></div>
+        <div class="stat-details">
+          <span class="stat-number"><%= stats.totalHostBookings || 0 %></span>
+          <span class="stat-label">Total Guest Reservations</span>
+        </div>
+      </div>
+    <% } else { %>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-blue"><i class="fa-solid fa-calendar-days"></i></div>
+        <div class="stat-details">
+          <span class="stat-number"><%= stats.totalBookings || 0 %></span>
+          <span class="stat-label">Total Reservations</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-cyan"><i class="fa-solid fa-plane-departure"></i></div>
+        <div class="stat-details">
+          <span class="stat-number"><%= stats.upcomingCount || 0 %></span>
+          <span class="stat-label">Upcoming Trips</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-amber"><i class="fa-solid fa-ban"></i></div>
+        <div class="stat-details">
+          <span class="stat-number"><%= stats.cancelledCount || 0 %></span>
+          <span class="stat-label">Cancelled Stays</span>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon stat-icon-purple"><i class="fa-solid fa-arrow-rotate-left"></i></div>
+        <div class="stat-details">
+          <span class="stat-number">&#8377;<%= Number(stats.totalRefunded || 0).toLocaleString('en-IN') %></span>
+          <span class="stat-label">Total Refunded</span>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Profile Settings & Security Forms Grid -->
+  <div class="profile-forms-grid">
+    <!-- Form 1: Edit Profile Details -->
+    <div class="profile-card">
+      <div class="profile-card-header">
+        <div class="card-icon"><i class="fa-solid fa-user-pen"></i></div>
+        <div>
+          <h2 class="profile-card-title">Personal Details</h2>
+          <p class="profile-card-subtitle">Manage your public name and primary contact email.</p>
+        </div>
+      </div>
+
+      <form action="/profile" method="POST" class="profile-form">
+        <div class="form-group">
+          <label for="name" class="form-label">Full Name</label>
+          <div class="input-icon-wrap">
+            <i class="fa-solid fa-user input-icon"></i>
+            <input 
+              type="text" 
+              name="name" 
+              id="name" 
+              class="form-control" 
+              value="<%= user.name %>" 
+              required
+              maxlength="50"
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="email" class="form-label">Email Address</label>
+          <div class="input-icon-wrap">
+            <i class="fa-solid fa-envelope input-icon"></i>
+            <input 
+              type="email" 
+              name="email" 
+              id="email" 
+              class="form-control" 
+              value="<%= user.email %>" 
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Account Role</label>
+          <div class="input-icon-wrap">
+            <i class="fa-solid fa-shield-halved input-icon"></i>
+            <input 
+              type="text" 
+              class="form-control" 
+              value="<%= user.role === 'host' ? 'Host (Property Owner)' : 'Traveler (Guest)' %>" 
+              disabled
+              style="background: var(--bg-surface-alt, #f8fafc); cursor: not-allowed;"
+            >
+          </div>
+          <small class="form-text text-muted" style="margin-top: 0.35rem; display: block; font-size: 0.8rem;">
+            Role permissions are permanent for account security.
+          </small>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="margin-top: 1rem;">
+          <i class="fa-solid fa-floppy-disk"></i> Save Profile Details
+        </button>
+      </form>
+    </div>
+
+    <!-- Form 2: Change Password -->
+    <div class="profile-card">
+      <div class="profile-card-header">
+        <div class="card-icon card-icon-amber"><i class="fa-solid fa-lock"></i></div>
+        <div>
+          <h2 class="profile-card-title">Security & Password</h2>
+          <p class="profile-card-subtitle">Update your password to keep your StayVerse account secure.</p>
+        </div>
+      </div>
+
+      <form action="/profile/password" method="POST" class="profile-form">
+        <div class="form-group">
+          <label for="currentPassword" class="form-label">Current Password</label>
+          <div class="input-icon-wrap">
+            <i class="fa-solid fa-key input-icon"></i>
+            <input 
+              type="password" 
+              name="currentPassword" 
+              id="currentPassword" 
+              class="form-control" 
+              placeholder="••••••••" 
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="newPassword" class="form-label">New Password</label>
+          <div class="input-icon-wrap">
+            <i class="fa-solid fa-lock input-icon"></i>
+            <input 
+              type="password" 
+              name="newPassword" 
+              id="newPassword" 
+              class="form-control" 
+              placeholder="At least 6 characters" 
+              minlength="6"
+              required
+            >
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword" class="form-label">Confirm New Password</label>
+          <div class="input-icon-wrap">
+            <i class="fa-solid fa-check-double input-icon"></i>
+            <input 
+              type="password" 
+              name="confirmPassword" 
+              id="confirmPassword" 
+              class="form-control" 
+              placeholder="Re-enter new password" 
+              minlength="6"
+              required
+            >
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-outline" style="margin-top: 1rem;">
+          <i class="fa-solid fa-shield-check"></i> Update Password
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Recent Refund Ledger Activity (if user has refund history) -->
+  <% if (recentRefunds && recentRefunds.length > 0) { %>
+    <div class="refund-ledger-section">
+      <div class="ledger-header-row">
+        <div>
+          <h3 class="ledger-title">
+            <i class="fa-solid fa-receipt"></i> Recent Refund History
+          </h3>
+          <p class="ledger-subtitle">
+            Verified audit trail of cancellations and completed refunds credited to your balance.
+          </p>
+        </div>
+        <a href="/dashboard/traveler" class="btn btn-outline btn-sm">
+          Full Itinerary &rarr;
+        </a>
+      </div>
+
+      <div class="ledger-table-wrap">
+        <table class="ledger-table">
+          <thead>
+            <tr>
+              <th>Stay / Property</th>
+              <th>Original Price</th>
+              <th>Refund Amount</th>
+              <th>Policy Applied</th>
+              <th>Status</th>
+              <th>Processed Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recentRefunds.forEach(r => { %>
+              <tr>
+                <td>
+                  <strong class="ledger-prop-title"><%= r.propertyTitle || 'Vacation Rental Property' %></strong>
+                </td>
+                <td>&#8377;<%= Number(r.originalAmount || 0).toLocaleString('en-IN') %></td>
+                <td>
+                  <span class="ledger-refund-val">&#8377;<%= Number(r.amount || 0).toLocaleString('en-IN') %></span>
+                  <small class="ledger-pct">(<%= r.refundPercentage %>%)</small>
+                </td>
+                <td><span class="ledger-policy"><%= r.policyApplied %></span></td>
+                <td>
+                  <span class="badge-refund-status status-<%= r.status ? r.status.toLowerCase() : 'completed' %>">
+                    <i class="fa-solid fa-circle-check"></i> <%= r.status ? r.status.toUpperCase() : 'COMPLETED' %>
+                  </span>
+                </td>
+                <td><%= new Date(r.processedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% } %>
+</div>
+

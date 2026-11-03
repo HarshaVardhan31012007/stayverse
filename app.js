@@ -10,6 +10,13 @@ const { notFoundHandler, errorHandler } = require('./middleware/errorMiddleware'
 
 const app = express();
 
+// Secure Reverse Proxy Configuration (Render, Cloudflare, Heroku)
+app.set('trust proxy', 1);
+
+// Global API Rate Limiter
+const { globalApiLimiter } = require('./middleware/rateLimitMiddleware');
+app.use('/api', globalApiLimiter);
+
 // View Engine Setup with ejs-mate layout support
 app.engine('ejs', ejsMate);
 app.set('view engine', 'ejs');
@@ -49,6 +56,7 @@ const bookingRoutes = require('./routes/bookingRoutes');
 const recommendationRoutes = require('./routes/recommendationRoutes');
 const propertyController = require('./controllers/propertyController');
 const bookingController = require('./controllers/bookingController');
+const authController = require('./controllers/authController');
 const { requireAuth } = require('./middleware/authMiddleware');
 const { requireRole } = require('./middleware/roleMiddleware');
 const { catchAsync } = require('./middleware/errorMiddleware');
@@ -79,6 +87,16 @@ app.get(
   requireAuth,
   catchAsync(bookingController.getTravelerBookings)
 );
+
+// User Profile direct routes
+app.route('/profile')
+  .get(requireAuth, catchAsync(authController.renderProfile))
+  .post(requireAuth, catchAsync(authController.updateProfile))
+  .put(requireAuth, catchAsync(authController.updateProfile));
+
+app.route('/profile/password')
+  .post(requireAuth, catchAsync(authController.updatePassword))
+  .put(requireAuth, catchAsync(authController.updatePassword));
 
 // Health Check Endpoint
 app.get('/health', (req, res) => {

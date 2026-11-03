@@ -74,7 +74,7 @@ describe('MODULE 2: Property Management (CRUD, Ownership RBAC, Filters, Uploads)
         .post('/api/properties')
         .set('Authorization', `Bearer ${host1Token}`)
         .send({
-          title: 'Seaside Sanctuary Villa',
+          title: 'Seaside Perfect Stay Villa',
           description: 'A stunning modern oceanfront escape with floor-to-ceiling glass.',
           pricePerNight: 350,
           address: '400 Pacific Coast Hwy',
@@ -88,7 +88,7 @@ describe('MODULE 2: Property Management (CRUD, Ownership RBAC, Filters, Uploads)
 
       expect(res.status).toBe(201);
       expect(res.body.success).toBe(true);
-      expect(res.body.data.title).toBe('Seaside Sanctuary Villa');
+      expect(res.body.data.title).toBe('Seaside Perfect Stay Villa');
       expect(res.body.data.pricePerNight).toBe(350);
       expect(res.body.data.priceUnit).toBe('night'); // Default unit
       expect(res.body.data.location.type).toBe('Point');

@@ -44,6 +44,11 @@ const userSchema = new mongoose.Schema(
       city: { type: String, default: '' },
       radius: { type: Number, default: 0 },
     },
+    cumulativeRefunded: {
+      type: Number,
+      default: 0,
+      min: [0, 'Cumulative refunded cannot be negative'],
+    },
   },
   {
     timestamps: true,

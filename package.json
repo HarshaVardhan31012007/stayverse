@@ -32,11 +32,15 @@
     "ejs": "^3.1.10",
     "ejs-mate": "^4.0.0",
     "express": "^4.21.2",
+    "express-rate-limit": "^8.7.3",
+    "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
     "method-override": "^3.0.0",
     "mongoose": "^8.9.5",
     "multer": "^1.4.5-lts.1",
-    "multer-storage-cloudinary": "^4.0.0"
+    "multer-storage-cloudinary": "^4.0.0",
+    "rate-limit-redis": "^6.0.2",
+    "redis": "^6.3.1"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
@@ -46,6 +50,7 @@
   },
   "jest": {
     "testEnvironment": "node",
-    "testTimeout": 30000
+    "testTimeout": 30000,
+    "globalTeardown": "./tests/globalTeardown.js"
   }
 }
